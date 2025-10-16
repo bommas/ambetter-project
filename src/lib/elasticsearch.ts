@@ -36,13 +36,53 @@ export const HEALTH_PLANS_MAPPING = {
     eligibility_requirements: { type: 'text' },
     document_url: { type: 'keyword' },
     extracted_text: { type: 'text', analyzer: 'standard' },
+    
+    // Semantic text fields for better search
+    title: { 
+      type: 'text', 
+      analyzer: 'standard',
+      fields: {
+        semantic: { type: 'text', analyzer: 'standard' },
+        semantic_vector: { type: 'dense_vector', dims: 768 }
+      }
+    },
+    body: { 
+      type: 'text', 
+      analyzer: 'standard',
+      fields: {
+        semantic: { type: 'text', analyzer: 'standard' },
+        semantic_vector: { type: 'dense_vector', dims: 768 }
+      }
+    },
+    
+    // Plan-specific semantic content
+    plan_description: { 
+      type: 'text', 
+      analyzer: 'standard',
+      fields: {
+        semantic: { type: 'text', analyzer: 'standard' },
+        semantic_vector: { type: 'dense_vector', dims: 768 }
+      }
+    },
+    benefits_summary: { 
+      type: 'text', 
+      analyzer: 'standard',
+      fields: {
+        semantic: { type: 'text', analyzer: 'standard' },
+        semantic_vector: { type: 'dense_vector', dims: 768 }
+      }
+    },
+    
+    // Legacy embedding field (keeping for compatibility)
     plan_embedding: { type: 'dense_vector', dims: 768 },
+    
     metadata: {
       properties: {
         file_name: { type: 'keyword' },
         file_size: { type: 'long' },
         created_at: { type: 'date' },
-        updated_at: { type: 'date' }
+        updated_at: { type: 'date' },
+        semantic_processed: { type: 'boolean', default: false }
       }
     }
   }

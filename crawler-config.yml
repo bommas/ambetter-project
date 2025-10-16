@@ -18,6 +18,7 @@ extraction_rules:
   - name: "health_plan_metadata"
     selector: "body"
     extract:
+      # Basic plan information
       - name: "plan_name"
         selector: "h1, h2, h3"
         type: "text"
@@ -41,6 +42,20 @@ extraction_rules:
         selector: "text"
         type: "text"
         pattern: "\\b(deductible|deduct)\\b[:\s]*\\$?\\d+(?:,\\d{3})*(?:\\.\\d{2})?"
+      
+      # Semantic content fields
+      - name: "title"
+        selector: "title, h1, h2"
+        type: "text"
+      - name: "body"
+        selector: "body, main, .content, .main-content"
+        type: "text"
+      - name: "plan_description"
+        selector: "p, .description, .plan-info"
+        type: "text"
+      - name: "benefits_summary"
+        selector: ".benefits, .coverage, .features, ul, ol"
+        type: "text"
 
 crawl_settings:
   max_pages: 100
