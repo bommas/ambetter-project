@@ -4,9 +4,8 @@ const nextConfig = {
     serverComponentsExternalPackages: ['@elastic/elasticsearch', 'amqplib', 'pdf-parse']
   },
   env: {
-    ELASTICSEARCH_URL: process.env.ELASTICSEARCH_URL,
-    ELASTICSEARCH_USERNAME: process.env.ELASTICSEARCH_USERNAME,
-    ELASTICSEARCH_PASSWORD: process.env.ELASTICSEARCH_PASSWORD,
+    ELASTIC_CLOUD_ID: process.env.ELASTIC_CLOUD_ID,
+    ELASTIC_API_KEY: process.env.ELASTIC_API_KEY,
     RABBITMQ_URL: process.env.RABBITMQ_URL,
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY

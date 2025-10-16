@@ -48,8 +48,8 @@ export default function AdminPage() {
           <div>
             <h3 className="text-lg font-medium mb-2">Crawl Ambetter Website</h3>
             <p className="text-gray-600 mb-4">
-              Extract and index health plan documents from the Ambetter website.
-              This will populate the Elasticsearch database with plan information.
+              Use the official Elastic Crawler to extract and index health plan documents from the Ambetter website.
+              This will populate the Elasticsearch database with plan information using robust web crawling.
             </p>
             
             <button

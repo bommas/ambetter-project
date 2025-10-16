@@ -17,10 +17,10 @@
   - `user-sessions` - User behavior and session data
 - **Custom mappings** for health plan attributes (county, tobacco use, etc.)
 
-### 🕷️ PDF Crawler
-- **Web crawler** for Ambetter Texas website
+### 🕷️ Elastic Crawler Integration
+- **Official Elastic Crawler** for robust web crawling
 - **PDF processing** with text extraction
-- **Intelligent parsing** to extract:
+- **Intelligent parsing** using extraction rules to extract:
   - Plan names and types (EPO, HMO, PPO)
   - County information
   - Tobacco use requirements
@@ -28,6 +28,7 @@
   - Premium ranges and deductibles
   - Eligibility requirements
 - **Respectful crawling** with delays and proper headers
+- **Production-ready** with enterprise features
 
 ### 📊 Data Processing Pipeline
 - **Document enrichment** with metadata
@@ -43,7 +44,17 @@
 
 ## How to Use
 
-### 1. Start Services
+### 1. Configure Environment
+```bash
+# Copy environment template
+cp .env.example .env
+
+# Edit .env with your Elastic Cloud credentials
+# ELASTIC_CLOUD_ID=your_cloud_id_here
+# ELASTIC_API_KEY=your_api_key_here
+```
+
+### 2. Start Services
 ```bash
 # Run the setup script
 ./scripts/setup.sh
@@ -54,10 +65,10 @@ npm install
 npm run dev
 ```
 
-### 2. Access the Application
+### 3. Access the Application
 - **Main App**: http://localhost:3000
 - **Admin Panel**: http://localhost:3000/admin
-- **Elasticsearch**: http://localhost:9200
+- **Elastic Cloud**: Your cloud instance (configured via .env)
 - **RabbitMQ**: http://localhost:15672 (guest/guest)
 
 ### 3. Start Crawling
@@ -79,9 +90,8 @@ npm run dev
 
 ### Environment Variables
 ```env
-ELASTICSEARCH_URL=http://localhost:9200
-ELASTICSEARCH_USERNAME=elastic
-ELASTICSEARCH_PASSWORD=changeme
+ELASTIC_CLOUD_ID=your_elastic_cloud_id_here
+ELASTIC_API_KEY=your_elastic_api_key_here
 RABBITMQ_URL=amqp://localhost:5672
 ```
 
@@ -102,7 +112,6 @@ RABBITMQ_URL=amqp://localhost:5672
 ### Core Application
 - `src/app/` - Next.js pages and layout
 - `src/lib/elasticsearch.ts` - Elasticsearch client and configuration
-- `src/crawler/pdf-crawler.ts` - PDF crawling and processing
 - `src/app/api/crawl/route.ts` - Crawl API endpoint
 - `src/app/admin/page.tsx` - Admin interface
 
@@ -112,6 +121,7 @@ RABBITMQ_URL=amqp://localhost:5672
 - `tailwind.config.ts` - Styling configuration
 - `tsconfig.json` - TypeScript configuration
 - `docker-compose.yml` - Services configuration
+- `crawler-config.yml` - Elastic Crawler configuration
 
 ### Documentation
 - `PHASE1_COMPLETE.md` - This file

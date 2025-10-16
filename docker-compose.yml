@@ -1,22 +1,6 @@
 version: '3.8'
 
 services:
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.15.0
-    container_name: ambetter-elasticsearch
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=true
-      - ELASTIC_PASSWORD=changeme
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-    volumes:
-      - elasticsearch_data:/usr/share/elasticsearch/data
-    networks:
-      - ambetter-network
-
   rabbitmq:
     image: rabbitmq:3.12-management
     container_name: ambetter-rabbitmq
@@ -31,9 +15,24 @@ services:
     networks:
       - ambetter-network
 
+  elastic-crawler:
+    image: docker.elastic.co/integrations/crawler:latest
+    container_name: ambetter-crawler
+    environment:
+      - ELASTIC_CLOUD_ID=${ELASTIC_CLOUD_ID}
+      - ELASTIC_API_KEY=${ELASTIC_API_KEY}
+    volumes:
+      - ./crawler-config.yml:/config/crawler-config.yml
+      - ./crawler-data:/data
+    networks:
+      - ambetter-network
+    depends_on:
+      - rabbitmq
+    command: ["jruby", "bin/crawler", "crawl", "/config/crawler-config.yml"]
+
 volumes:
-  elasticsearch_data:
   rabbitmq_data:
+  crawler_data:
 
 networks:
   ambetter-network:

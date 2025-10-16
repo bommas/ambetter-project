@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Client } from '@elastic/elasticsearch'
-import { PDFCrawler } from '@/crawler/pdf-crawler'
 import { initializeIndices } from '@/lib/elasticsearch'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🚀 Starting crawl via API...')
+    console.log('🚀 Starting Elastic Crawler via API...')
 
     // Initialize Elasticsearch client
     const client = new Client({
-      node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200',
+      cloud: {
+        id: process.env.ELASTIC_CLOUD_ID!,
+      },
       auth: {
-        username: process.env.ELASTICSEARCH_USERNAME || 'elastic',
-        password: process.env.ELASTICSEARCH_PASSWORD || 'changeme'
+        apiKey: process.env.ELASTIC_API_KEY!,
       }
     })
 
@@ -21,7 +25,7 @@ export async function POST(request: NextRequest) {
       await client.cluster.health()
     } catch (error) {
       return NextResponse.json(
-        { error: 'Elasticsearch connection failed. Make sure it\'s running.' },
+        { error: 'Elastic Cloud connection failed. Check your credentials.' },
         { status: 500 }
       )
     }
@@ -29,36 +33,53 @@ export async function POST(request: NextRequest) {
     // Initialize indices
     await initializeIndices()
 
-    // Create crawler and run
-    const crawler = new PDFCrawler(client)
-    const documents = await crawler.crawlAmbetterWebsite()
+    // Run Elastic Crawler using Docker
+    try {
+      console.log('🐳 Starting Elastic Crawler...')
+      const { stdout, stderr } = await execAsync(`
+        docker run --rm \
+          -v "$(pwd)/crawler-config.yml:/config/crawler-config.yml" \
+          -e ELASTIC_CLOUD_ID="${process.env.ELASTIC_CLOUD_ID}" \
+          -e ELASTIC_API_KEY="${process.env.ELASTIC_API_KEY}" \
+          docker.elastic.co/integrations/crawler:latest \
+          jruby bin/crawler crawl /config/crawler-config.yml
+      `)
 
-    if (documents.length === 0) {
+      console.log('Crawler output:', stdout)
+      if (stderr) console.log('Crawler errors:', stderr)
+
+      // Check if documents were indexed
+      const searchResponse = await client.search({
+        index: 'health-plans',
+        body: {
+          query: { match_all: {} },
+          size: 0
+        }
+      })
+
+      const totalDocs = searchResponse.hits.total
+      const message = totalDocs > 0 
+        ? `Crawl completed successfully. Indexed ${totalDocs} documents.`
+        : 'Crawl completed but no documents were found.'
+
+      return NextResponse.json({
+        message,
+        count: totalDocs,
+        crawlerOutput: stdout,
+        crawlerErrors: stderr
+      })
+
+    } catch (crawlError) {
+      console.error('❌ Crawler execution failed:', crawlError)
       return NextResponse.json(
-        { message: 'No documents found to index', count: 0 },
-        { status: 200 }
+        { 
+          error: 'Crawler execution failed', 
+          details: crawlError instanceof Error ? crawlError.message : 'Unknown error',
+          crawlerOutput: crawlError instanceof Error ? crawlError.message : 'No output'
+        },
+        { status: 500 }
       )
     }
-
-    // Index documents
-    await crawler.indexDocuments(documents)
-
-    // Return summary
-    const planTypes = [...new Set(documents.map(doc => doc.plan_type))]
-    const counties = [...new Set(documents.map(doc => doc.county).filter(Boolean))]
-
-    return NextResponse.json({
-      message: 'Crawl and indexing completed successfully',
-      count: documents.length,
-      planTypes,
-      counties,
-      documents: documents.map(doc => ({
-        plan_name: doc.plan_name,
-        plan_type: doc.plan_type,
-        county: doc.county,
-        document_url: doc.document_url
-      }))
-    })
 
   } catch (error) {
     console.error('❌ Error during crawl:', error)

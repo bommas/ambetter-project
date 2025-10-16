@@ -1,10 +1,11 @@
 import { Client } from '@elastic/elasticsearch'
 
 const client = new Client({
-  node: process.env.ELASTICSEARCH_URL || 'http://localhost:9200',
+  cloud: {
+    id: process.env.ELASTIC_CLOUD_ID!,
+  },
   auth: {
-    username: process.env.ELASTICSEARCH_USERNAME || 'elastic',
-    password: process.env.ELASTICSEARCH_PASSWORD || 'changeme'
+    apiKey: process.env.ELASTIC_API_KEY!,
   }
 })
 
@@ -92,89 +93,93 @@ export const CLICK_EVENTS_MAPPING = {
 // Initialize indices
 export async function initializeIndices() {
   try {
+    // Check if indices already exist
+    const existingIndices = await client.cat.indices({ format: 'json' })
+    const existingIndexNames = existingIndices.map((index: any) => index.index)
+
     // Create health plans index
-    await client.indices.create({
-      index: INDICES.HEALTH_PLANS,
-      body: {
-        mappings: HEALTH_PLANS_MAPPING,
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0
+    if (!existingIndexNames.includes(INDICES.HEALTH_PLANS)) {
+      await client.indices.create({
+        index: INDICES.HEALTH_PLANS,
+        body: {
+          mappings: HEALTH_PLANS_MAPPING
         }
-      }
-    })
-    console.log('✅ Health plans index created')
+      })
+      console.log('✅ Health plans index created')
+    } else {
+      console.log('ℹ️ Health plans index already exists')
+    }
 
     // Create search events index
-    await client.indices.create({
-      index: INDICES.SEARCH_EVENTS,
-      body: {
-        mappings: SEARCH_EVENTS_MAPPING,
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0
+    if (!existingIndexNames.includes(INDICES.SEARCH_EVENTS)) {
+      await client.indices.create({
+        index: INDICES.SEARCH_EVENTS,
+        body: {
+          mappings: SEARCH_EVENTS_MAPPING
         }
-      }
-    })
-    console.log('✅ Search events index created')
+      })
+      console.log('✅ Search events index created')
+    } else {
+      console.log('ℹ️ Search events index already exists')
+    }
 
     // Create click events index
-    await client.indices.create({
-      index: INDICES.CLICK_EVENTS,
-      body: {
-        mappings: CLICK_EVENTS_MAPPING,
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0
+    if (!existingIndexNames.includes(INDICES.CLICK_EVENTS)) {
+      await client.indices.create({
+        index: INDICES.CLICK_EVENTS,
+        body: {
+          mappings: CLICK_EVENTS_MAPPING
         }
-      }
-    })
-    console.log('✅ Click events index created')
+      })
+      console.log('✅ Click events index created')
+    } else {
+      console.log('ℹ️ Click events index already exists')
+    }
 
     // Create analytics metrics index
-    await client.indices.create({
-      index: INDICES.ANALYTICS_METRICS,
-      body: {
-        mappings: {
-          properties: {
-            metric_name: { type: 'keyword' },
-            metric_value: { type: 'double' },
-            timestamp: { type: 'date' },
-            dimensions: { type: 'object' }
+    if (!existingIndexNames.includes(INDICES.ANALYTICS_METRICS)) {
+      await client.indices.create({
+        index: INDICES.ANALYTICS_METRICS,
+        body: {
+          mappings: {
+            properties: {
+              metric_name: { type: 'keyword' },
+              metric_value: { type: 'double' },
+              timestamp: { type: 'date' },
+              dimensions: { type: 'object' }
+            }
           }
-        },
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0
         }
-      }
-    })
-    console.log('✅ Analytics metrics index created')
+      })
+      console.log('✅ Analytics metrics index created')
+    } else {
+      console.log('ℹ️ Analytics metrics index already exists')
+    }
 
     // Create user sessions index
-    await client.indices.create({
-      index: INDICES.USER_SESSIONS,
-      body: {
-        mappings: {
-          properties: {
-            session_id: { type: 'keyword' },
-            user_id: { type: 'keyword' },
-            start_time: { type: 'date' },
-            end_time: { type: 'date' },
-            search_count: { type: 'integer' },
-            click_count: { type: 'integer' },
-            total_duration: { type: 'integer' }
+    if (!existingIndexNames.includes(INDICES.USER_SESSIONS)) {
+      await client.indices.create({
+        index: INDICES.USER_SESSIONS,
+        body: {
+          mappings: {
+            properties: {
+              session_id: { type: 'keyword' },
+              user_id: { type: 'keyword' },
+              start_time: { type: 'date' },
+              end_time: { type: 'date' },
+              search_count: { type: 'integer' },
+              click_count: { type: 'integer' },
+              total_duration: { type: 'integer' }
+            }
           }
-        },
-        settings: {
-          number_of_shards: 1,
-          number_of_replicas: 0
         }
-      }
-    })
-    console.log('✅ User sessions index created')
+      })
+      console.log('✅ User sessions index created')
+    } else {
+      console.log('ℹ️ User sessions index already exists')
+    }
 
-    console.log('🎉 All Elasticsearch indices initialized successfully!')
+    console.log('🎉 All Elasticsearch indices ready!')
   } catch (error) {
     console.error('❌ Error initializing indices:', error)
     throw error

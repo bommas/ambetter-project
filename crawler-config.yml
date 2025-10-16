@@ -1,0 +1,49 @@
+output_sink: elasticsearch
+output_index: health-plans
+
+elasticsearch:
+  cloud_id: ${ELASTIC_CLOUD_ID}
+  api_key: ${ELASTIC_API_KEY}
+  pipeline_enabled: false
+
+domains:
+  - url: https://www.ambetterhealth.com/en/tx/2025-brochures-epo/
+    crawl_rules:
+      - type: include
+        pattern: ".*\\.pdf$"
+      - type: exclude
+        pattern: ".*\\.(css|js|png|jpg|jpeg|gif|svg|ico)$"
+
+extraction_rules:
+  - name: "health_plan_metadata"
+    selector: "body"
+    extract:
+      - name: "plan_name"
+        selector: "h1, h2, h3"
+        type: "text"
+      - name: "plan_type"
+        selector: "text"
+        type: "text"
+        pattern: "\\b(EPO|HMO|PPO|POS)\\b"
+      - name: "county"
+        selector: "text"
+        type: "text"
+        pattern: "\\b(Harris|Dallas|Travis|Bexar|Tarrant|Collin|Fort Bend|Montgomery|Galveston|Brazoria)\\s+County"
+      - name: "tobacco_use"
+        selector: "text"
+        type: "text"
+        pattern: "\\b(tobacco|smoking|smoker)\\b"
+      - name: "premium_range"
+        selector: "text"
+        type: "text"
+        pattern: "\\$\\d+(?:,\\d{3})*(?:\\.\\d{2})?\\s*[-–]\\s*\\$\\d+(?:,\\d{3})*(?:\\.\\d{2})?"
+      - name: "deductible_info"
+        selector: "text"
+        type: "text"
+        pattern: "\\b(deductible|deduct)\\b[:\s]*\\$?\\d+(?:,\\d{3})*(?:\\.\\d{2})?"
+
+crawl_settings:
+  max_pages: 100
+  delay_between_pages: 1000
+  respect_robots_txt: true
+  user_agent: "AmbetterCrawler/1.0"
