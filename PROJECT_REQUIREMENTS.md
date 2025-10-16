@@ -235,7 +235,7 @@ graph TB
 ```
 
 ### Backend Architecture
-- **Node.js + Express** or **Python + FastAPI**
+- **Node.js + Express**
 - **RESTful API** design
 - **Authentication & Authorization**
 - **Rate limiting and security**
@@ -318,7 +318,7 @@ graph TB
 
 ### Backend Technologies
 - **Elasticsearch/OpenSearch**: Search engine and analytics storage
-- **Node.js + Express** or **Python + FastAPI**: API framework
+- **Node.js + Express**: API framework
 - **RabbitMQ**: Message queuing for click stream
 - **Redis**: Caching and session management
 - **Docker**: Containerization
@@ -353,19 +353,19 @@ graph TB
 4. Create custom mapping and indexing
 5. Test data extraction and indexing
 
-### Phase 2: Frontend Development (Weeks 3-4)
-1. Set up React application with TypeScript
+### Phase 2: React Frontend Development (Weeks 3-4)
+1. Set up React 18 application with TypeScript
 2. Implement search interface matching Ambetter design
 3. Build search results page with AI summaries
-4. Integrate with Elasticsearch search API
+4. Integrate with Node.js backend API
 5. Add filtering and faceted search
 
 ### Phase 3: Backend API (Weeks 5-6)
-1. Build RESTful API with search endpoints
+1. Build Node.js + Express RESTful API with search endpoints
 2. Implement plan boosting system
 3. Add click tracking functionality
 4. Set up authentication and security
-5. Integrate with frontend
+5. Integrate with React frontend
 
 ### Phase 4: Analytics & Dashboard (Weeks 7-8)
 1. Set up RabbitMQ for click stream

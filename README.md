@@ -110,17 +110,17 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 ## 🛠️ Technology Stack
 
 ### Frontend
-- **React 18** with TypeScript
-- **Tailwind CSS** for styling
-- **React Query** for data fetching
-- **Framer Motion** for animations
+- **React 18** with **TypeScript**
+- **Tailwind CSS** for styling and responsive design
+- **React Query** for data fetching and caching
+- **Framer Motion** for smooth animations
 - **Chart.js** for analytics visualizations
 
 ### Backend
-- **Node.js** with Express
-- **Elasticsearch/OpenSearch** for search
+- **Node.js** with **Express.js** framework
+- **Elasticsearch/OpenSearch** for search and analytics
 - **RabbitMQ** for message queuing
-- **Redis** for caching
+- **Redis** for caching and sessions
 - **JWT** for authentication
 
 ### AI/ML
@@ -147,8 +147,9 @@ ambetter-project/
 │   │   ├── services/              # API services
 │   │   └── utils/                 # Utility functions
 │   └── public/                    # Static assets
-├── backend/                       # Node.js API
+├── backend/                       # Node.js + Express API
 │   ├── src/
+│   │   ├── routes/                # Express routes
 │   │   ├── controllers/           # API controllers
 │   │   ├── services/              # Business logic
 │   │   ├── models/                # Data models
@@ -178,19 +179,19 @@ ambetter-project/
 - [ ] Create custom mapping and indexing
 - [ ] Test data extraction and indexing
 
-### Phase 2: Frontend Development (Weeks 3-4)
-- [ ] Set up React application with TypeScript
+### Phase 2: React Frontend Development (Weeks 3-4)
+- [ ] Set up React 18 application with TypeScript
 - [ ] Implement search interface matching Ambetter design
 - [ ] Build search results page with AI summaries
-- [ ] Integrate with Elasticsearch search API
+- [ ] Integrate with Node.js backend API
 - [ ] Add filtering and faceted search
 
-### Phase 3: Backend API (Weeks 5-6)
-- [ ] Build RESTful API with search endpoints
+### Phase 3: Node.js Backend API (Weeks 5-6)
+- [ ] Build Node.js + Express RESTful API with search endpoints
 - [ ] Implement plan boosting system
 - [ ] Add click tracking functionality
 - [ ] Set up authentication and security
-- [ ] Integrate with frontend
+- [ ] Integrate with React frontend
 
 ### Phase 4: Analytics & Dashboard (Weeks 7-8)
 - [ ] Set up RabbitMQ for click stream
@@ -214,10 +215,10 @@ ambetter-project/
 ## 🧪 Testing
 
 ```bash
-# Run backend tests
+# Run Node.js backend tests
 cd backend && npm test
 
-# Run frontend tests
+# Run React frontend tests
 cd frontend && npm test
 
 # Run integration tests
