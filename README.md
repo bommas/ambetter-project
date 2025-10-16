@@ -64,11 +64,12 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 
 ### Prerequisites
 
-- Node.js 18+ 
-- Docker & Docker Compose
-- Elasticsearch 8.x or OpenSearch 2.x
-- Redis 6+
-- RabbitMQ 3.8+
+- **Node.js 18+** (for backend API)
+- **React 18+** (for frontend development)
+- **Docker & Docker Compose**
+- **Elasticsearch 8.x** or **OpenSearch 2.x**
+- **Redis 6+**
+- **RabbitMQ 3.8+**
 
 ### Installation
 
@@ -91,19 +92,19 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 
 4. **Install dependencies**
    ```bash
-   # Backend
+   # Node.js Backend
    cd backend && npm install
    
-   # Frontend
+   # React Frontend
    cd frontend && npm install
    ```
 
 5. **Run the application**
    ```bash
-   # Start backend
+   # Start Node.js backend
    cd backend && npm run dev
    
-   # Start frontend (in new terminal)
+   # Start React frontend (in new terminal)
    cd frontend && npm start
    ```
 
