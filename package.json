@@ -1,45 +1,35 @@
 {
   "name": "ambetter-project",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest",
-    "test:integration": "jest --testPathPattern=integration"
+    "qa": "bash scripts/qa-test.sh",
+    "qa:validate": "curl -X POST http://localhost:3000/api/qa/validate -H 'Content-Type: application/json' -d '{\"environment\":\"production\"}'",
+    "health": "curl http://localhost:3000/api/health"
   },
   "dependencies": {
-    "next": "14.2.5",
-    "react": "^18",
-    "react-dom": "^18",
-    "@elastic/elasticsearch": "^8.15.0",
-    "amqplib": "^0.10.4",
+    "@elastic/elasticsearch": "^8.11.0",
+    "amqplib": "^0.10.3",
+    "next": "14.0.4",
     "pdf-parse": "^1.1.1",
-    "axios": "^1.7.2",
-    "cheerio": "^1.0.0-rc.12",
-    "framer-motion": "^11.3.19",
-    "chart.js": "^4.4.1",
-    "react-chartjs-2": "^5.2.0",
-    "lucide-react": "^0.408.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.4.0"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "typescript": "^5",
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "@types/amqplib": "^0.10.5",
+    "@types/amqplib": "^0.10.4",
+    "@types/node": "^20.10.5",
     "@types/pdf-parse": "^1.1.4",
-    "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.39",
-    "tailwindcss": "^3.4.4",
-    "eslint": "^8",
-    "eslint-config-next": "14.2.5",
-    "jest": "^29.7.0",
-    "@testing-library/react": "^14.3.1",
-    "@testing-library/jest-dom": "^6.4.2"
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8.4.32",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3"
   }
 }

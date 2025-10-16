@@ -12,20 +12,21 @@ export async function POST(request: NextRequest) {
 
     // Initialize Elasticsearch client
     const client = new Client({
-      cloud: {
-        id: process.env.ELASTIC_CLOUD_ID!,
-      },
+      node: process.env.ELASTIC_ENDPOINT || 'https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud',
       auth: {
         apiKey: process.env.ELASTIC_API_KEY!,
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     })
 
     // Test connection
     try {
-      await client.cluster.health()
+      await client.info()
     } catch (error) {
       return NextResponse.json(
-        { error: 'Elastic Cloud connection failed. Check your credentials.' },
+        { error: 'Elasticsearch connection failed. Check your credentials.' },
         { status: 500 }
       )
     }
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       })
 
       const totalDocs = searchResponse.hits.total
-      const message = totalDocs > 0 
+      const message = (totalDocs as number) > 0
         ? `Crawl completed successfully. Indexed ${totalDocs} documents.`
         : 'Crawl completed but no documents were found.'
 

@@ -36,6 +36,9 @@ export default function RootLayout({
                   <a href="/admin" className="text-gray-700 hover:text-ambetter-blue">
                     Admin
                   </a>
+                  <a href="/qa" className="text-gray-700 hover:text-ambetter-blue">
+                    QA
+                  </a>
                 </nav>
               </div>
             </div>

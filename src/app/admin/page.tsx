@@ -4,9 +4,7 @@ import { useState } from 'react'
 
 export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [isProcessingEmbeddings, setIsProcessingEmbeddings] = useState(false)
   const [result, setResult] = useState<any>(null)
-  const [embeddingResult, setEmbeddingResult] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
 
   const handleCrawl = async () => {
@@ -36,32 +34,6 @@ export default function AdminPage() {
     }
   }
 
-  const handleProcessEmbeddings = async () => {
-    setIsProcessingEmbeddings(true)
-    setError(null)
-    setEmbeddingResult(null)
-
-    try {
-      const response = await fetch('/api/process-embeddings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Embedding processing failed')
-      }
-
-      setEmbeddingResult(data)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setIsProcessingEmbeddings(false)
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -81,23 +53,13 @@ export default function AdminPage() {
               This will populate the Elasticsearch database with plan information using robust web crawling.
             </p>
             
-            <div className="flex space-x-4">
-              <button
-                onClick={handleCrawl}
-                disabled={isLoading}
-                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Crawling...' : 'Start Crawl'}
-              </button>
-              
-              <button
-                onClick={handleProcessEmbeddings}
-                disabled={isProcessingEmbeddings || isLoading}
-                className="btn-secondary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isProcessingEmbeddings ? 'Processing...' : 'Process Embeddings'}
-              </button>
-            </div>
+            <button
+              onClick={handleCrawl}
+              disabled={isLoading}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? 'Crawling...' : 'Start Crawl'}
+            </button>
           </div>
 
           {error && (
@@ -131,16 +93,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {embeddingResult && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="text-blue-800 font-medium">Embedding Processing Completed</h4>
-              <div className="text-blue-600 space-y-2">
-                <p><strong>Processed:</strong> {embeddingResult.processed} documents</p>
-                <p><strong>Total:</strong> {embeddingResult.total} documents</p>
-                <p><strong>Progress:</strong> {embeddingResult.percentage}%</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

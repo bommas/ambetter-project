@@ -1,11 +1,15 @@
 import { Client } from '@elastic/elasticsearch'
 
 const client = new Client({
-  cloud: {
-    id: process.env.ELASTIC_CLOUD_ID!,
-  },
-  auth: {
+  node: process.env.ELASTIC_ENDPOINT || 'https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud',
+  auth: process.env.ELASTIC_USERNAME && process.env.ELASTIC_PASSWORD ? {
+    username: process.env.ELASTIC_USERNAME,
+    password: process.env.ELASTIC_PASSWORD,
+  } : {
     apiKey: process.env.ELASTIC_API_KEY!,
+  },
+  tls: {
+    rejectUnauthorized: false
   }
 })
 
@@ -21,7 +25,7 @@ export const INDICES = {
 } as const
 
 // Health plan document mapping
-export const HEALTH_PLANS_MAPPING = {
+export const HEALTH_PLANS_MAPPING: any = {
   properties: {
     plan_name: { type: 'text', analyzer: 'standard' },
     plan_type: { type: 'keyword' },
@@ -37,44 +41,11 @@ export const HEALTH_PLANS_MAPPING = {
     document_url: { type: 'keyword' },
     extracted_text: { type: 'text', analyzer: 'standard' },
     
-    // Semantic text fields for better search
-    title: { 
-      type: 'text', 
-      analyzer: 'standard',
-      fields: {
-        semantic: { type: 'text', analyzer: 'standard' },
-        semantic_vector: { type: 'dense_vector', dims: 768 }
-      }
-    },
-    body: { 
-      type: 'text', 
-      analyzer: 'standard',
-      fields: {
-        semantic: { type: 'text', analyzer: 'standard' },
-        semantic_vector: { type: 'dense_vector', dims: 768 }
-      }
-    },
-    
-    // Plan-specific semantic content
-    plan_description: { 
-      type: 'text', 
-      analyzer: 'standard',
-      fields: {
-        semantic: { type: 'text', analyzer: 'standard' },
-        semantic_vector: { type: 'dense_vector', dims: 768 }
-      }
-    },
-    benefits_summary: { 
-      type: 'text', 
-      analyzer: 'standard',
-      fields: {
-        semantic: { type: 'text', analyzer: 'standard' },
-        semantic_vector: { type: 'dense_vector', dims: 768 }
-      }
-    },
-    
-    // Legacy embedding field (keeping for compatibility)
-    plan_embedding: { type: 'dense_vector', dims: 768 },
+    // Basic text fields for lexical search
+    title: { type: 'text', analyzer: 'standard' },
+    body: { type: 'text', analyzer: 'standard' },
+    plan_description: { type: 'text', analyzer: 'standard' },
+    benefits_summary: { type: 'text', analyzer: 'standard' },
     
     metadata: {
       properties: {
@@ -82,14 +53,14 @@ export const HEALTH_PLANS_MAPPING = {
         file_size: { type: 'long' },
         created_at: { type: 'date' },
         updated_at: { type: 'date' },
-        semantic_processed: { type: 'boolean', default: false }
+        indexed_at: { type: 'date' }
       }
     }
   }
 }
 
 // Search events mapping
-export const SEARCH_EVENTS_MAPPING = {
+export const SEARCH_EVENTS_MAPPING: any = {
   properties: {
     search_query: { type: 'text', analyzer: 'standard' },
     filters: {
@@ -107,7 +78,7 @@ export const SEARCH_EVENTS_MAPPING = {
 }
 
 // Click events mapping
-export const CLICK_EVENTS_MAPPING = {
+export const CLICK_EVENTS_MAPPING: any = {
   properties: {
     search_query: { type: 'text', analyzer: 'standard' },
     clicked_plan_id: { type: 'keyword' },
