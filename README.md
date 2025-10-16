@@ -27,7 +27,7 @@ graph TB
     end
     
     subgraph "Data Layer"
-        G[Elasticsearch<br/>Search, Analytics & Cache]
+        G[Elasticsearch<br/>Unified Data Store<br/>Search + Analytics + Click Stream]
         H[RabbitMQ<br/>Message Queue]
     end
     
@@ -95,7 +95,7 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 - **Chart.js** for analytics visualizations
 
 ### Data & Services
-- **Elasticsearch/OpenSearch** for search, analytics, and caching
+- **Elasticsearch/OpenSearch** for unified data store (search, analytics, click stream, caching)
 - **RabbitMQ** for message queuing
 - **JWT** for authentication
 

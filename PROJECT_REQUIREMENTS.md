@@ -13,7 +13,7 @@ graph TB
     end
     
     subgraph "Data Layer"
-        G[Elasticsearch<br/>Search, Analytics & Cache]
+        G[Elasticsearch<br/>Unified Data Store<br/>Search + Analytics + Click Stream]
         H[RabbitMQ<br/>Message Queue]
     end
     
@@ -250,7 +250,7 @@ graph TB
     
     C --> D[Click Stream Processor<br/>Real-time Analytics]
     D --> E[Data Enrichment<br/>User Session & Context]
-    E --> F[Elasticsearch<br/>Analytics & Cache Index]
+    E --> F[Elasticsearch<br/>Unified Data Index]
     
     F --> G[React Analytics Dashboard<br/>Real-time Components]
     G --> H[Search Metrics<br/>Volume & Trends]
@@ -273,7 +273,7 @@ graph TB
 - **RabbitMQ** message broker for click stream data
 - **Real-time event collection**
 - **Data processing and enrichment**
-- **Elasticsearch indexing** of analytics data
+- **Elasticsearch indexing** of all data (search, analytics, click stream)
 
 ### React Analytics Dashboard Features
 - **Search Volume Metrics**: Real-time search counts
@@ -285,7 +285,7 @@ graph TB
 - **Conversion Rates**: Search to click analytics
 - **Historical Trends**: Search patterns over time
 
-### Click Stream Data Structure
+### Click Stream Data Structure (Indexed in Elasticsearch)
 - `search_query`
 - `timestamp`
 - `user_session_id`
@@ -295,6 +295,15 @@ graph TB
 - `time_to_click`
 - `user_agent`
 - `ip_address` (anonymized)
+- `event_type` (search, click, view, etc.)
+- `plan_metadata` (plan name, type, county, etc.)
+
+### Elasticsearch Indices Structure
+- **`health-plans`**: Health plan documents and metadata
+- **`search-events`**: Search queries and interactions
+- **`click-events`**: User clicks and plan interactions
+- **`analytics-metrics`**: Aggregated analytics data
+- **`user-sessions`**: User session data and behavior
 
 ## Technical Stack
 
@@ -302,7 +311,7 @@ graph TB
 - **Next.js 14**: Full-stack React framework with API routes
 - **TypeScript**: Type-safe development
 - **Tailwind CSS**: Styling framework
-- **Elasticsearch/OpenSearch**: Search engine, analytics, and caching
+- **Elasticsearch/OpenSearch**: Unified data store for search, analytics, click stream, and caching
 - **RabbitMQ**: Message queuing for click stream
 
 ### Additional Tools
