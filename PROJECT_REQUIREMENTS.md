@@ -13,9 +13,8 @@ graph TB
     end
     
     subgraph "Data Layer"
-        G[Elasticsearch<br/>Search & Analytics]
+        G[Elasticsearch<br/>Search, Analytics & Cache]
         H[RabbitMQ<br/>Message Queue]
-        I[Redis<br/>Cache & Sessions]
     end
     
     subgraph "External Services"
@@ -33,7 +32,6 @@ graph TB
     B --> C
     C --> G
     C --> H
-    C --> I
     
     H --> N
     N --> G
@@ -253,7 +251,7 @@ graph TB
     
     C --> D[Click Stream Processor<br/>Real-time Analytics]
     D --> E[Data Enrichment<br/>User Session & Context]
-    E --> F[Elasticsearch<br/>Analytics Index]
+    E --> F[Elasticsearch<br/>Analytics & Cache Index]
     
     F --> G[React Analytics Dashboard<br/>Real-time Components]
     G --> H[Search Metrics<br/>Volume & Trends]
@@ -305,8 +303,7 @@ graph TB
 - **Next.js 14**: Full-stack React framework with API routes
 - **TypeScript**: Type-safe development
 - **Tailwind CSS**: Styling framework
-- **Elasticsearch/OpenSearch**: Search engine and analytics storage
-- **Redis**: Caching and session management
+- **Elasticsearch/OpenSearch**: Search engine, analytics, and caching
 - **RabbitMQ**: Message queuing for click stream
 
 ### Additional Tools

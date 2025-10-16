@@ -67,7 +67,6 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 - **Node.js 18+** (for Next.js)
 - **Docker & Docker Compose**
 - **Elasticsearch 8.x** or **OpenSearch 2.x**
-- **Redis 6+**
 - **RabbitMQ 3.8+**
 
 ### Installation
@@ -110,9 +109,8 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 - **Chart.js** for analytics visualizations
 
 ### Data & Services
-- **Elasticsearch/OpenSearch** for search and analytics
+- **Elasticsearch/OpenSearch** for search, analytics, and caching
 - **RabbitMQ** for message queuing
-- **Redis** for caching and sessions
 - **JWT** for authentication
 
 ### AI/ML
