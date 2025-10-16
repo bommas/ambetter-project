@@ -174,7 +174,7 @@ graph TB
     H --> K[Generative Summary<br/>Top 2 Results]
     
     L[State Management<br/>React Query] --> A
-    M[UI Components<br/>Tailwind CSS] --> A
+    M[React UI Components<br/>Tailwind CSS] --> A
     N[Animations<br/>Framer Motion] --> A
 ```
 
@@ -183,7 +183,7 @@ graph TB
   - Search input with autocomplete
   - Filter options (county, tobacco use, plan type)
   - Search results display
-- **Search Results Page**:
+- **React Search Results Page**:
   - Generative AI summary of top 2 results
   - Context highlighting of search terms
   - Plan value propositions
@@ -270,13 +270,13 @@ graph TB
     D --> E[Data Enrichment<br/>User Session & Context]
     E --> F[Elasticsearch<br/>Analytics Index]
     
-    F --> G[Analytics Dashboard<br/>React Components]
+    F --> G[React Analytics Dashboard<br/>Real-time Components]
     G --> H[Search Metrics<br/>Volume & Trends]
     G --> I[Plan Performance<br/>Click Rates & Rankings]
     G --> J[User Behavior<br/>Journey & Patterns]
     G --> K[Geographic Insights<br/>County Distribution]
     
-    L[Admin Dashboard<br/>Plan Boosting] --> M[Boost Configuration<br/>Weight Management]
+    L[React Admin Dashboard<br/>Plan Boosting] --> M[Boost Configuration<br/>Weight Management]
     M --> N[Plan Scoring<br/>Dynamic Rankings]
     N --> O[A/B Testing<br/>Performance Comparison]
     
@@ -293,7 +293,7 @@ graph TB
 - **Data processing and enrichment**
 - **Elasticsearch indexing** of analytics data
 
-### Analytics Dashboard Features
+### React Analytics Dashboard Features
 - **Search Volume Metrics**: Real-time search counts
 - **Top Searched Terms**: Most popular search queries
 - **Most Clicked Plans**: Plan performance rankings
@@ -356,7 +356,7 @@ graph TB
 ### Phase 2: React Frontend Development (Weeks 3-4)
 1. Set up React 18 application with TypeScript
 2. Implement search interface matching Ambetter design
-3. Build search results page with AI summaries
+3. Build React search results page with AI summaries
 4. Integrate with Node.js backend API
 5. Add filtering and faceted search
 
@@ -370,7 +370,7 @@ graph TB
 ### Phase 4: Analytics & Dashboard (Weeks 7-8)
 1. Set up RabbitMQ for click stream
 2. Implement analytics data pipeline
-3. Build analytics dashboard
+3. Build React analytics dashboard
 4. Add real-time metrics and visualizations
 5. Implement A/B testing framework
 
@@ -400,7 +400,7 @@ graph TB
 ## Success Metrics
 - Search response time < 200ms
 - 95%+ search accuracy
-- Real-time analytics dashboard
+- Real-time React analytics dashboard
 - Mobile-responsive design
 - Scalable architecture for future growth
 

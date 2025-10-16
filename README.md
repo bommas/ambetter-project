@@ -10,7 +10,7 @@ This application provides a powerful search interface for Texas Ambetter health 
 
 - 🔍 **Hybrid Search**: Combines vector similarity with keyword matching
 - 🤖 **AI-Powered Summaries**: Generative summaries of top search results
-- 📊 **Analytics Dashboard**: Real-time insights and click stream analytics
+- 📊 **React Analytics Dashboard**: Real-time insights and click stream analytics
 - ⚡ **Plan Boosting**: Dynamic plan ranking and A/B testing
 - 📱 **Responsive Design**: Mobile-first approach matching Ambetter's design
 - 🎯 **Smart Filtering**: Filter by county, tobacco use, plan type, and more
@@ -22,7 +22,7 @@ This application provides a powerful search interface for Texas Ambetter health 
 graph TB
     subgraph "Frontend Layer"
         A[React Application<br/>Search Interface]
-        B[Analytics Dashboard<br/>Admin & Insights]
+        B[React Analytics Dashboard<br/>Admin & Insights]
     end
     
     subgraph "API Gateway"
@@ -143,7 +143,7 @@ ambetter-project/
 ├── frontend/                      # React application
 │   ├── src/
 │   │   ├── components/            # React components
-│   │   ├── pages/                 # Page components
+│   │   ├── pages/                 # React page components
 │   │   ├── services/              # API services
 │   │   └── utils/                 # Utility functions
 │   └── public/                    # Static assets
@@ -163,7 +163,7 @@ ambetter-project/
 ├── analytics/                     # Analytics service
 │   ├── src/
 │   │   ├── processors/            # Click stream processors
-│   │   ├── dashboards/            # Analytics dashboards
+│   │   ├── dashboards/            # React analytics dashboards
 │   │   └── exporters/             # Data exporters
 ├── docker-compose.yml             # Docker services
 ├── .env.example                   # Environment variables template
@@ -182,7 +182,7 @@ ambetter-project/
 ### Phase 2: React Frontend Development (Weeks 3-4)
 - [ ] Set up React 18 application with TypeScript
 - [ ] Implement search interface matching Ambetter design
-- [ ] Build search results page with AI summaries
+- [ ] Build React search results page with AI summaries
 - [ ] Integrate with Node.js backend API
 - [ ] Add filtering and faceted search
 
@@ -196,7 +196,7 @@ ambetter-project/
 ### Phase 4: Analytics & Dashboard (Weeks 7-8)
 - [ ] Set up RabbitMQ for click stream
 - [ ] Implement analytics data pipeline
-- [ ] Build analytics dashboard
+- [ ] Build React analytics dashboard
 - [ ] Add real-time metrics and visualizations
 - [ ] Implement A/B testing framework
 
@@ -229,7 +229,7 @@ npm run test:integration
 
 - Search response time < 200ms
 - 95%+ search accuracy
-- Real-time analytics dashboard
+- Real-time React analytics dashboard
 - Mobile-responsive design
 - Scalable architecture for future growth
 
