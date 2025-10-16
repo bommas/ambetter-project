@@ -20,25 +20,15 @@ This application provides a powerful search interface for Texas Ambetter health 
 ### High-Level Architecture
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
-        A[React Application<br/>Search Interface]
-        B[React Analytics Dashboard<br/>Admin & Insights]
-    end
-    
-    subgraph "API Gateway"
-        C[Nginx Reverse Proxy<br/>Load Balancer]
-    end
-    
-    subgraph "Backend Services"
-        D[Search API<br/>Node.js/Express]
-        E[Analytics API<br/>Click Stream Processing]
-        F[Plan Management API<br/>Boosting & A/B Testing]
+    subgraph "Next.js Application"
+        A[Search Interface<br/>React Components]
+        B[Analytics Dashboard<br/>Admin & Insights]
+        C[API Routes<br/>Search, Analytics, Management]
     end
     
     subgraph "Data Layer"
-        G[Elasticsearch<br/>Search & Analytics]
+        G[Elasticsearch<br/>Search, Analytics & Cache]
         H[RabbitMQ<br/>Message Queue]
-        I[Redis<br/>Cache & Sessions]
     end
     
     subgraph "External Services"
@@ -48,12 +38,8 @@ graph TB
     
     A --> C
     B --> C
-    C --> D
-    C --> E
-    C --> F
-    D --> G
-    E --> H
-    F --> G
+    C --> G
+    C --> H
 ```
 
 ## 📋 Project Requirements

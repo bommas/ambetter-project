@@ -213,8 +213,7 @@ graph TB
     L --> P[Click Stream Processor<br/>Real-time Analytics]
     P --> K
     
-    Q[Redis Cache<br/>Session & Search Cache] --> C
-    R[Authentication<br/>JWT Tokens] --> C
+    Q[Authentication<br/>JWT Tokens] --> C
 ```
 
 ### Backend Architecture
