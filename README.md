@@ -64,8 +64,7 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 
 ### Prerequisites
 
-- **Node.js 18+** (for backend API)
-- **React 18+** (for frontend development)
+- **Node.js 18+** (for Next.js)
 - **Docker & Docker Compose**
 - **Elasticsearch 8.x** or **OpenSearch 2.x**
 - **Redis 6+**
@@ -92,33 +91,25 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 
 4. **Install dependencies**
    ```bash
-   # Node.js Backend
-   cd backend && npm install
-   
-   # React Frontend
-   cd frontend && npm install
+   npm install
    ```
 
 5. **Run the application**
    ```bash
-   # Start Node.js backend
-   cd backend && npm run dev
-   
-   # Start React frontend (in new terminal)
-   cd frontend && npm start
+   # Start Next.js development server
+   npm run dev
    ```
 
 ## 🛠️ Technology Stack
 
-### Frontend
-- **React 18** with **TypeScript**
+### Full-Stack
+- **Next.js 14** with **TypeScript**
 - **Tailwind CSS** for styling and responsive design
-- **React Query** for data fetching and caching
+- **API Routes** for backend functionality
 - **Framer Motion** for smooth animations
 - **Chart.js** for analytics visualizations
 
-### Backend
-- **Node.js** with **Express.js** framework
+### Data & Services
 - **Elasticsearch/OpenSearch** for search and analytics
 - **RabbitMQ** for message queuing
 - **Redis** for caching and sessions
@@ -141,21 +132,11 @@ ambetter-project/
 ├── docs/                          # Documentation
 │   ├── PROJECT_REQUIREMENTS.md    # Detailed requirements
 │   └── API_DOCUMENTATION.md       # API documentation
-├── frontend/                      # React application
-│   ├── src/
-│   │   ├── components/            # React components
-│   │   ├── pages/                 # React page components
-│   │   ├── services/              # API services
-│   │   └── utils/                 # Utility functions
-│   └── public/                    # Static assets
-├── backend/                       # Node.js + Express API
-│   ├── src/
-│   │   ├── routes/                # Express routes
-│   │   ├── controllers/           # API controllers
-│   │   ├── services/              # Business logic
-│   │   ├── models/                # Data models
-│   │   └── middleware/            # Express middleware
-│   └── config/                    # Configuration files
+├── src/                           # Next.js application
+│   ├── app/                       # App router pages
+│   ├── components/                # React components
+│   ├── lib/                       # Utility functions
+│   └── api/                       # API routes
 ├── crawler/                       # PDF crawling service
 │   ├── src/
 │   │   ├── crawlers/              # Web crawlers
@@ -180,24 +161,24 @@ ambetter-project/
 - [ ] Create custom mapping and indexing
 - [ ] Test data extraction and indexing
 
-### Phase 2: React Frontend Development (Weeks 3-4)
-- [ ] Set up React 18 application with TypeScript
-- [ ] Implement search interface matching Ambetter design
-- [ ] Build React search results page with AI summaries
-- [ ] Integrate with Node.js backend API
+### Phase 2: Next.js Application Development (Weeks 3-4)
+- [ ] Set up Next.js 14 application with TypeScript
+- [ ] Create pages for search, results, and analytics
+- [ ] Implement API routes for search and analytics
+- [ ] Build search interface matching Ambetter design
 - [ ] Add filtering and faceted search
 
-### Phase 3: Node.js Backend API (Weeks 5-6)
-- [ ] Build Node.js + Express RESTful API with search endpoints
+### Phase 3: API Routes & Features (Weeks 5-6)
+- [ ] Build API routes for search, analytics, and plan management
 - [ ] Implement plan boosting system
 - [ ] Add click tracking functionality
 - [ ] Set up authentication and security
-- [ ] Integrate with React frontend
+- [ ] Integrate AI services for summaries
 
 ### Phase 4: Analytics & Dashboard (Weeks 7-8)
 - [ ] Set up RabbitMQ for click stream
 - [ ] Implement analytics data pipeline
-- [ ] Build React analytics dashboard
+- [ ] Build Next.js analytics dashboard
 - [ ] Add real-time metrics and visualizations
 - [ ] Implement A/B testing framework
 
@@ -216,11 +197,8 @@ ambetter-project/
 ## 🧪 Testing
 
 ```bash
-# Run Node.js backend tests
-cd backend && npm test
-
-# Run React frontend tests
-cd frontend && npm test
+# Run Next.js tests
+npm test
 
 # Run integration tests
 npm run test:integration

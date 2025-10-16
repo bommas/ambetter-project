@@ -6,19 +6,10 @@ A comprehensive full-stack application for searching and analyzing Ambetter heal
 ### System Overview Architecture
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
-        A[React Application<br/>Search Interface]
+    subgraph "Next.js Application"
+        A[Search Interface<br/>React Components]
         B[Analytics Dashboard<br/>Admin & Insights]
-    end
-    
-    subgraph "API Gateway"
-        C[Nginx Reverse Proxy<br/>Load Balancer]
-    end
-    
-    subgraph "Backend Services"
-        D[Search API<br/>Node.js/Express]
-        E[Analytics API<br/>Click Stream Processing]
-        F[Plan Management API<br/>Boosting & A/B Testing]
+        C[API Routes<br/>Search, Analytics, Management]
     end
     
     subgraph "Data Layer"
@@ -40,15 +31,9 @@ graph TB
     
     A --> C
     B --> C
-    C --> D
-    C --> E
-    C --> F
-    
-    D --> G
-    D --> I
-    E --> H
-    E --> G
-    F --> G
+    C --> G
+    C --> H
+    C --> I
     
     H --> N
     N --> G
@@ -151,31 +136,31 @@ Custom mapping for health plan documents with the following attributes:
 - Metadata enrichment and categorization
 - Vector embeddings generation for semantic search
 
-## Part 2: React Frontend Application
+## Part 2: Next.js Application
 
 ### Architecture Diagram
 ```mermaid
 graph TB
-    A[User Interface<br/>React App] --> B[Search Component<br/>Input & Filters]
-    A --> C[Results Component<br/>Plan Display & AI Summary]
-    A --> D[Filter Component<br/>County, Tobacco, Plan Type]
+    A[Next.js App<br/>Pages & Components] --> B[Search Page<br/>Input & Filters]
+    A --> C[Results Page<br/>Plan Display & AI Summary]
+    A --> D[Analytics Page<br/>Admin Dashboard]
     
-    B --> E[Search API<br/>/api/search]
+    B --> E[API Route<br/>/api/search]
     C --> E
-    D --> E
+    D --> F[API Route<br/>/api/analytics]
     
-    E --> F[Backend API<br/>Node.js/Express]
-    F --> G[Elasticsearch<br/>Hybrid Search]
-    F --> H[AI Service<br/>OpenAI/Claude]
+    E --> G[Elasticsearch<br/>Hybrid Search]
+    E --> H[AI Service<br/>OpenAI/Claude]
+    F --> I[Click Stream Data<br/>Analytics Processing]
     
-    G --> I[Vector Search<br/>Semantic Similarity]
-    G --> J[Lexical Search<br/>Keyword Matching]
+    G --> J[Vector Search<br/>Semantic Similarity]
+    G --> K[Lexical Search<br/>Keyword Matching]
     
-    H --> K[Generative Summary<br/>Top 2 Results]
+    H --> L[Generative Summary<br/>Top 2 Results]
     
-    L[State Management<br/>React Query] --> A
-    M[React UI Components<br/>Tailwind CSS] --> A
-    N[Animations<br/>Framer Motion] --> A
+    M[State Management<br/>React Hooks] --> A
+    N[UI Components<br/>Tailwind CSS] --> A
+    O[Animations<br/>Framer Motion] --> A
 ```
 
 ### Core Features
@@ -316,21 +301,19 @@ graph TB
 
 ## Technical Stack
 
-### Backend Technologies
-- **Elasticsearch/OpenSearch**: Search engine and analytics storage
-- **Node.js + Express**: API framework
-- **RabbitMQ**: Message queuing for click stream
-- **Redis**: Caching and session management
-- **Docker**: Containerization
-- **Nginx**: Reverse proxy
-
-### Frontend Technologies
-- **React 18** with TypeScript
+### Full-Stack Technologies
+- **Next.js 14**: Full-stack React framework with API routes
+- **TypeScript**: Type-safe development
 - **Tailwind CSS**: Styling framework
-- **Axios**: HTTP client
-- **React Query**: Data fetching and caching
-- **Framer Motion**: Animations
+- **Elasticsearch/OpenSearch**: Search engine and analytics storage
+- **Redis**: Caching and session management
+- **RabbitMQ**: Message queuing for click stream
+
+### Additional Tools
+- **Docker**: Containerization
+- **Vercel/Netlify**: Easy deployment
 - **Chart.js** or **D3.js**: Analytics visualizations
+- **Framer Motion**: Animations
 
 ### AI/ML Components
 - **OpenAI API** or **Anthropic Claude**: Generative summaries
@@ -353,24 +336,24 @@ graph TB
 4. Create custom mapping and indexing
 5. Test data extraction and indexing
 
-### Phase 2: React Frontend Development (Weeks 3-4)
-1. Set up React 18 application with TypeScript
-2. Implement search interface matching Ambetter design
-3. Build React search results page with AI summaries
-4. Integrate with Node.js backend API
+### Phase 2: Next.js Application Development (Weeks 3-4)
+1. Set up Next.js 14 application with TypeScript
+2. Create pages for search, results, and analytics
+3. Implement API routes for search and analytics
+4. Build search interface matching Ambetter design
 5. Add filtering and faceted search
 
-### Phase 3: Backend API (Weeks 5-6)
-1. Build Node.js + Express RESTful API with search endpoints
+### Phase 3: API Routes & Features (Weeks 5-6)
+1. Build API routes for search, analytics, and plan management
 2. Implement plan boosting system
 3. Add click tracking functionality
 4. Set up authentication and security
-5. Integrate with React frontend
+5. Integrate AI services for summaries
 
 ### Phase 4: Analytics & Dashboard (Weeks 7-8)
 1. Set up RabbitMQ for click stream
 2. Implement analytics data pipeline
-3. Build React analytics dashboard
+3. Build Next.js analytics dashboard
 4. Add real-time metrics and visualizations
 5. Implement A/B testing framework
 
