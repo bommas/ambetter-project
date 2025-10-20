@@ -64,7 +64,7 @@ Comprehensive coding rules, best practices, and architectural principles are doc
 
 ### Phase 2 Objectives
 - **🔍 Search Interface**: Next.js application with advanced search capabilities
-- **🤖 AI Integration**: OpenAI/Claude powered generative summaries
+- **🤖 AI Integration**: Elasticsearch Serverless built-in AI (ELSER model)
 - **📊 Analytics Dashboard**: Click stream analytics and plan performance metrics
 - **🎨 UI/UX**: Responsive design matching Ambetter's brand
 - **⚡ Performance**: Sub-2-second search response times
@@ -72,7 +72,7 @@ Comprehensive coding rules, best practices, and architectural principles are doc
 ### Phase 2 Features
 - **Hybrid Search**: Vector + lexical search with Elasticsearch
 - **Smart Filters**: County, plan type, document type filtering
-- **AI Summaries**: Generative summaries of top 2 search results
+- **AI Summaries**: ELSER-powered semantic search and content analysis
 - **Real-time Analytics**: Search term tracking and click analytics
 - **Plan Boosting**: Admin interface for plan ranking management
 

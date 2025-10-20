@@ -177,42 +177,42 @@ graph TB
 
 ### 1. Generative AI Summaries
 
-#### **OpenAI/Claude Integration**
-- **Summary Generation**
-  - Top 2 results summarization
-  - Context-aware content
-  - Plan value highlighting
-  - Eligibility information extraction
+#### **Elasticsearch Serverless AI Integration**
+- **Native LLM Integration**
+  - Use Elastic's built-in ELSER model for semantic search
+  - Leverage Elastic's inference API for text generation
+  - Built-in vector embeddings and similarity search
+  - No external API dependencies or costs
 
-#### **Prompt Engineering**
-- **Structured Prompts**
-  - Plan comparison templates
-  - Value proposition extraction
-  - Coverage summary generation
-  - Eligibility requirement parsing
+#### **Elastic AI Features**
+- **Semantic Search**
+  - ELSER model for contextual understanding
+  - Dense vector search with cosine similarity
+  - Multi-language support
+  - Automatic relevance scoring
 
 #### **AI Response Processing**
-- **Content Validation**
-  - Fact-checking against source documents
-  - Consistency verification
-  - Error handling for AI failures
-  - Fallback to manual summaries
+- **Elastic Inference API**
+  - Built-in text summarization
+  - Content extraction and analysis
+  - Consistent with search results
+  - No external API rate limits
 
 ### 2. AI-Powered Features
 
 #### **Smart Search Suggestions**
-- **Query Enhancement**
-  - Search term suggestions
-  - Related query recommendations
-  - Intent recognition
-  - Query expansion
+- **Elastic Query Enhancement**
+  - Use ELSER for query expansion
+  - Semantic similarity for suggestions
+  - Built-in auto-complete capabilities
+  - Context-aware search recommendations
 
 #### **Content Analysis**
-- **Document Understanding**
-  - Key information extraction
-  - Coverage analysis
-  - Benefit identification
-  - Cost structure parsing
+- **Elastic Document Understanding**
+  - ELSER-powered key information extraction
+  - Semantic coverage analysis
+  - Benefit identification using embeddings
+  - Cost structure parsing with AI
 
 ---
 
@@ -338,11 +338,11 @@ POST /api/plans/compare
 - [ ] Add result sorting and pagination
 
 ### **Sprint 3: AI Integration (Week 5-6)**
-- [ ] Integrate OpenAI/Claude API
-- [ ] Implement generative summaries
-- [ ] Add AI-powered search suggestions
-- [ ] Create content analysis features
-- [ ] Build AI response validation
+- [ ] Integrate Elasticsearch Serverless AI (ELSER)
+- [ ] Implement semantic search with built-in embeddings
+- [ ] Add AI-powered search suggestions using ELSER
+- [ ] Create content analysis features with Elastic AI
+- [ ] Build AI response validation and fallbacks
 
 ### **Sprint 4: Analytics Dashboard (Week 7-8)**
 - [ ] Create admin dashboard
@@ -371,24 +371,21 @@ POST /api/plans/compare
     "typescript": "^5.0.0",
     "tailwindcss": "^3.0.0",
     "@elastic/elasticsearch": "^8.0.0",
-    "openai": "^4.0.0",
-    "@anthropic-ai/sdk": "^0.0.0",
     "framer-motion": "^10.0.0",
     "react-hook-form": "^7.0.0",
-    "zustand": "^4.0.0"
+    "zustand": "^4.0.0",
+    "@headlessui/react": "^1.7.0",
+    "@heroicons/react": "^2.0.0",
+    "lucide-react": "^0.300.0"
   }
 }
 ```
 
 ### **Environment Variables**
 ```env
-# Elasticsearch
+# Elasticsearch Serverless (with built-in AI)
 ELASTIC_ENDPOINT=https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud
 ELASTIC_API_KEY=your_api_key
-
-# AI Services
-OPENAI_API_KEY=your_openai_key
-ANTHROPIC_API_KEY=your_anthropic_key
 
 # Application
 NEXT_PUBLIC_APP_URL=http://localhost:3000
