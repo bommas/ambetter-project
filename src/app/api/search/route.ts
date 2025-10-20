@@ -115,18 +115,8 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
     }
   )
 
-  // Add semantic search if available
-  // Note: This will work with ELSER model in Elasticsearch Serverless
-  if (query.length > 3) {
-    shouldClauses.push({
-      text_expansion: {
-        'extracted_text_semantic': {
-          model_id: '.elser_model_2',
-          model_text: query
-        }
-      }
-    })
-  }
+  // Note: ELSER semantic search removed for now - using lexical search only
+  // TODO: Re-enable when ELSER model is available in Elasticsearch Serverless
 
   // Apply filters
   if (filters.county) {

@@ -165,8 +165,8 @@ export default function SearchPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section matching Ambetter's style */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-8 mb-8">
+        {/* Search Section matching modern Ambetter style */}
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 text-white rounded-3xl p-12 mb-8">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4">
               Shop and Compare Plans
@@ -261,7 +261,7 @@ export default function SearchPage() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSearch}
                 disabled={loading || !query.trim()}
-                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-10 py-4 border border-transparent text-lg font-semibold rounded-xl text-blue-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all"
               >
                 {loading ? (
                   <>
