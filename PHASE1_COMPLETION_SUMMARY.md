@@ -15,8 +15,8 @@
 
 ### Plan Coverage
 - **Plan Types**: TX014, TX016, TX017
-- **Counties Covered**: 9 Texas counties (0019, 0064, 0100, 0102, 0052, 0020, 0021, 0022, 0023)
-- **Document Types**: SBC, EOC, OOC, Brochures
+- **Counties Covered**: 2941 (primary county code identified)
+- **Document Types**: summary_of_benefits, evidence_of_coverage, out_of_coverage, brochure, policy, disclosure, sbc
 - **Plan Variants**: 00-06 variant numbering system
 
 ## 🏗️ Technical Achievements

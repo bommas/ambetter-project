@@ -17,8 +17,8 @@ A comprehensive full-stack application for searching and analyzing Ambetter heal
 - **Total Documents**: 160 documents in Elasticsearch
 - **PDFs Processed**: 138 health plan PDFs
 - **Plan Types**: TX014, TX016, TX017
-- **Counties Covered**: 9 different Texas counties
-- **Document Types**: SBC, EOC, OOC, Brochures
+- **Counties Covered**: 2941 (primary county code identified)
+- **Document Types**: summary_of_benefits, evidence_of_coverage, out_of_coverage, brochure, policy, disclosure, sbc
 - **Success Rate**: 100% (0 failures)
 
 ### System Overview Architecture
