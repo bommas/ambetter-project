@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 
@@ -71,32 +71,68 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header matching Ambetter's design */}
+      {/* Header matching Ambetter's exact design */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             {/* Logo area */}
             <div className="flex items-center">
               <Link href="/" className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">A</span>
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-blue-600">
                   Ambetter Health
-                </h1>
+                </div>
               </Link>
             </div>
 
-            {/* Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/search" className="text-gray-700 hover:text-blue-600 font-medium">
-                Shop Plans
-              </Link>
+            {/* Navigation matching Ambetter's exact menu structure */}
+            <nav className="hidden lg:flex items-center space-x-8">
+              <div className="relative group">
+                <button className="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                  Shop Plans
+                  <ChevronDownIcon className="ml-1 h-4 w-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-2">
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Health Plans</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Dental and Vision</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">How to Enroll</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Shop and Compare Plans</Link>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <button className="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                  For Members
+                  <ChevronDownIcon className="ml-1 h-4 w-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-2">
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Find a Doctor</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Drug Coverage</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Member Login</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Pay Now</Link>
+                  </div>
+                </div>
+              </div>
+
+              <div className="relative group">
+                <button className="flex items-center text-gray-700 hover:text-blue-600 font-medium">
+                  Programs & Savings
+                  <ChevronDownIcon className="ml-1 h-4 w-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                  <div className="py-2">
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">My Health Pays Rewards®</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Ways to Save</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">24hr Nurse Line</Link>
+                    <Link href="/search" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Virtual 24/7 Care</Link>
+                  </div>
+                </div>
+              </div>
+
               <Link href="/search" className="text-gray-700 hover:text-blue-600 font-medium">
                 Find a Doctor
-              </Link>
-              <Link href="/search" className="text-gray-700 hover:text-blue-600 font-medium">
-                Member Login
               </Link>
             </nav>
 
@@ -129,15 +165,15 @@ export default function SearchPage() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-8 mb-8">
+        {/* Search Section matching Ambetter's style */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg p-8 mb-8">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Find Your Perfect Health Plan
-            </h2>
-            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-              Search through Texas Ambetter health plans with our advanced AI-powered search. 
-              Find coverage details, benefits, and eligibility information.
+            <h1 className="text-4xl font-bold mb-4">
+              Shop and Compare Plans
+            </h1>
+            <p className="text-xl opacity-90 max-w-3xl mx-auto">
+              Use your ZIP Code to find your personal plan. See coverage in your area, find doctors and hospitals, 
+              view pharmacy program benefits, and view essential health benefits.
             </p>
           </div>
 
@@ -161,7 +197,7 @@ export default function SearchPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
               {/* County Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   County
                 </label>
                 <select
@@ -176,7 +212,7 @@ export default function SearchPage() {
 
               {/* Plan Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Plan Type
                 </label>
                 <select
@@ -196,7 +232,7 @@ export default function SearchPage() {
 
               {/* Document Type Filter */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-white mb-2">
                   Document Type
                 </label>
                 <select
@@ -225,11 +261,11 @@ export default function SearchPage() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSearch}
                 disabled={loading || !query.trim()}
-                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-blue-600 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
