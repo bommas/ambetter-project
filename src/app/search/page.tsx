@@ -75,22 +75,22 @@ export default function SearchPage() {
         <div className="max-w-[80%] mx-auto">
           <div className="flex items-center justify-between h-20">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold" style={{ color: '#0066CC' }}>
+              <span className="text-2xl font-bold" style={{ color: '#C61C71' }}>
                 Ambetter Health
               </span>
             </Link>
 
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 Shop Plans
               </Link>
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 For Members
               </Link>
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 Programs & Savings
               </Link>
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 Find a Doctor
               </Link>
             </nav>
@@ -107,8 +107,8 @@ export default function SearchPage() {
               <button
                 onClick={handleSearch}
                 disabled={loading}
-                className="px-6 py-2 rounded text-white text-sm font-medium disabled:opacity-50"
-                style={{ backgroundColor: '#0066CC' }}
+                className="px-6 py-2 rounded text-white text-sm font-medium disabled:opacity-50 hover:opacity-90"
+                style={{ backgroundColor: '#C61C71' }}
               >
                 {loading ? 'Searching...' : 'Search'}
               </button>
@@ -120,7 +120,7 @@ export default function SearchPage() {
       {/* Main Content */}
       <main>
         {/* Search Hero */}
-        <div style={{ backgroundColor: '#0066CC' }} className="py-16">
+        <div style={{ backgroundColor: '#C61C71' }} className="py-16">
           <div className="max-w-[80%] mx-auto">
             <div className="text-center text-white mb-8">
               <h1 className="text-[32px] font-bold mb-4">Shop and Compare Plans</h1>
@@ -192,8 +192,8 @@ export default function SearchPage() {
                 <button
                   onClick={handleSearch}
                   disabled={loading || !query.trim()}
-                  className="px-10 py-3 rounded text-white text-base font-medium disabled:opacity-50"
-                  style={{ backgroundColor: '#FFFFFF', color: '#0066CC' }}
+                  className="px-10 py-3 rounded text-base font-medium disabled:opacity-50 hover:opacity-90"
+                  style={{ backgroundColor: '#FFFFFF', color: '#C61C71' }}
                 >
                   {loading ? 'Searching...' : 'Search Plans'}
                 </button>
@@ -228,7 +228,7 @@ export default function SearchPage() {
                         {result.title}
                       </h3>
                       <div className="flex items-center space-x-4 mb-4">
-                        <span className="px-3 py-1 bg-blue-100 rounded text-[14px]" style={{ color: '#0066CC' }}>
+                        <span className="px-3 py-1 rounded text-[14px]" style={{ backgroundColor: '#F7E0EC', color: '#C61C71' }}>
                           {result.plan_type}
                         </span>
                         <span className="px-3 py-1 bg-green-100 rounded text-[14px]" style={{ color: '#059669' }}>

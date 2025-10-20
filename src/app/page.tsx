@@ -10,23 +10,23 @@ export default function HomePage() {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold" style={{ color: '#0066CC' }}>
+              <span className="text-2xl font-bold" style={{ color: '#C61C71' }}>
                 Ambetter Health
               </span>
             </Link>
 
             {/* Simple Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 Shop Plans
               </Link>
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 For Members
               </Link>
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 Programs & Savings
               </Link>
-              <Link href="/search" className="text-[#333333] hover:text-[#0066CC] font-medium text-base">
+              <Link href="/search" className="text-[#333333] hover:text-[#C61C71] font-medium text-base">
                 Find a Doctor
               </Link>
             </nav>
@@ -42,7 +42,7 @@ export default function HomePage() {
               <Link
                 href="/search"
                 className="px-6 py-2 rounded text-white text-sm font-medium"
-                style={{ backgroundColor: '#0066CC' }}
+                style={{ backgroundColor: '#C61C71' }}
               >
                 Search
               </Link>
@@ -53,8 +53,8 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main>
-        {/* Hero Section - Ambetter Style */}
-        <div style={{ backgroundColor: '#0066CC' }} className="py-20">
+        {/* Hero Section - Ambetter Pink/Magenta Style */}
+        <div style={{ backgroundColor: '#C61C71' }} className="py-20">
           <div className="max-w-[80%] mx-auto text-center text-white">
             <h1 className="text-[32px] font-bold mb-4" style={{ color: '#FFFFFF' }}>
               Affordable Health Insurance Plans from Ambetter Health
@@ -67,8 +67,8 @@ export default function HomePage() {
             </p>
             <Link
               href="/search"
-              className="inline-block px-8 py-3 bg-white rounded text-base font-medium"
-              style={{ color: '#0066CC' }}
+              className="inline-block px-8 py-3 bg-white rounded text-base font-medium hover:bg-gray-50"
+              style={{ color: '#C61C71' }}
             >
               Explore plans today!
             </Link>
@@ -87,7 +87,7 @@ export default function HomePage() {
                 <p className="text-[18px] mb-6" style={{ color: '#6E6E6E' }}>
                   Keep your coverage current and protect your family.
                 </p>
-                <Link href="/search" className="text-[18px] font-medium" style={{ color: '#0066CC' }}>
+                <Link href="/search" className="text-[18px] font-medium" style={{ color: '#C61C71' }}>
                   Learn More
                 </Link>
               </div>
@@ -100,7 +100,7 @@ export default function HomePage() {
                 <p className="text-[18px] mb-6" style={{ color: '#6E6E6E' }}>
                   Find comprehensive health coverage that fits your needs.
                 </p>
-                <Link href="/search" className="text-[18px] font-medium" style={{ color: '#0066CC' }}>
+                <Link href="/search" className="text-[18px] font-medium" style={{ color: '#C61C71' }}>
                   See Plan Coverage
                 </Link>
               </div>
@@ -113,7 +113,7 @@ export default function HomePage() {
                 <p className="text-[18px] mb-6" style={{ color: '#6E6E6E' }}>
                   Save money on vision care and other health services.
                 </p>
-                <Link href="/search" className="text-[18px] font-medium" style={{ color: '#0066CC' }}>
+                <Link href="/search" className="text-[18px] font-medium" style={{ color: '#C61C71' }}>
                   Programs and Perks
                 </Link>
               </div>
@@ -181,8 +181,8 @@ export default function HomePage() {
               </p>
               <Link
                 href="/search"
-                className="inline-block px-8 py-3 rounded text-white text-base font-medium"
-                style={{ backgroundColor: '#0066CC' }}
+                className="inline-block px-8 py-3 rounded text-white text-base font-medium hover:opacity-90"
+                style={{ backgroundColor: '#C61C71' }}
               >
                 View Texas Plans
               </Link>
@@ -201,8 +201,8 @@ export default function HomePage() {
             </p>
             <Link
               href="/search"
-              className="inline-block px-8 py-3 rounded text-white text-base font-medium"
-              style={{ backgroundColor: '#0066CC' }}
+              className="inline-block px-8 py-3 rounded text-white text-base font-medium hover:opacity-90"
+              style={{ backgroundColor: '#C61C71' }}
             >
               Download
             </Link>
