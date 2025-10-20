@@ -46,6 +46,10 @@ graph TB
 
 Detailed project requirements and architecture diagrams are available in [PROJECT_REQUIREMENTS.md](./PROJECT_REQUIREMENTS.md).
 
+## 📏 Coding Standards
+
+Comprehensive coding rules, best practices, and architectural principles are documented in [CODING_STANDARDS.md](./CODING_STANDARDS.md). These standards were established during this project and should be applied to all future coding projects for consistency and quality.
+
 ## 🎉 Phase 1: COMPLETED ✅
 
 ### Phase 1 Achievements
@@ -84,6 +88,7 @@ Detailed project requirements and architecture diagrams are available in [PROJEC
 - [INDEXING_PROCESS.md](./INDEXING_PROCESS.md): Complete PDF indexing workflow
 - [METADATA_ENHANCEMENTS.md](./METADATA_ENHANCEMENTS.md): Enhanced metadata extraction details
 - [PROJECT_REQUIREMENTS.md](./PROJECT_REQUIREMENTS.md): Updated with Phase 1 completion status
+- [CODING_STANDARDS.md](./CODING_STANDARDS.md): Comprehensive coding rules and best practices
 
 ## 🚀 Quick Start
 
