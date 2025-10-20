@@ -1,12 +1,13 @@
 import { Client } from '@elastic/elasticsearch'
+import config from '../../config/app-config'
 
 const client = new Client({
-  node: process.env.ELASTIC_ENDPOINT || 'https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud',
-  auth: process.env.ELASTIC_USERNAME && process.env.ELASTIC_PASSWORD ? {
-    username: process.env.ELASTIC_USERNAME,
-    password: process.env.ELASTIC_PASSWORD,
+  node: config.elasticsearch.endpoint,
+  auth: config.elasticsearch.username && config.elasticsearch.password ? {
+    username: config.elasticsearch.username,
+    password: config.elasticsearch.password,
   } : {
-    apiKey: process.env.ELASTIC_API_KEY!,
+    apiKey: config.elasticsearch.apiKey,
   },
   tls: {
     rejectUnauthorized: false
@@ -17,11 +18,11 @@ export default client
 
 // Elasticsearch indices configuration
 export const INDICES = {
-  HEALTH_PLANS: 'health-plans',
-  SEARCH_EVENTS: 'search-events',
-  CLICK_EVENTS: 'click-events',
-  ANALYTICS_METRICS: 'analytics-metrics',
-  USER_SESSIONS: 'user-sessions'
+  HEALTH_PLANS: config.elasticsearch.indices.healthPlans,
+  SEARCH_EVENTS: config.elasticsearch.indices.searchEvents,
+  CLICK_EVENTS: config.elasticsearch.indices.clickEvents,
+  ANALYTICS_METRICS: config.elasticsearch.indices.analyticsMetrics,
+  USER_SESSIONS: config.elasticsearch.indices.userSessions
 } as const
 
 // Health plan document mapping
@@ -29,8 +30,11 @@ export const HEALTH_PLANS_MAPPING: any = {
   properties: {
     plan_name: { type: 'text', analyzer: 'standard' },
     plan_type: { type: 'keyword' },
+    plan_id: { type: 'keyword' },
+    plan_variant: { type: 'keyword' },
     state: { type: 'keyword' },
     county: { type: 'keyword' },
+    county_code: { type: 'keyword' },
     tobacco_use: { type: 'boolean' },
     coverage_area: { type: 'text' },
     premium_range: { type: 'text' },
@@ -39,6 +43,7 @@ export const HEALTH_PLANS_MAPPING: any = {
     specialty_benefits: { type: 'text' },
     eligibility_requirements: { type: 'text' },
     document_url: { type: 'keyword' },
+    url: { type: 'keyword' },
     extracted_text: { type: 'text', analyzer: 'standard' },
     
     // Basic text fields for lexical search
@@ -47,13 +52,52 @@ export const HEALTH_PLANS_MAPPING: any = {
     plan_description: { type: 'text', analyzer: 'standard' },
     benefits_summary: { type: 'text', analyzer: 'standard' },
     
+    // PDF content field
+    pdf: {
+      properties: {
+        content: { type: 'text', analyzer: 'standard' },
+        filename: { type: 'keyword' },
+        size: { type: 'long' },
+        extracted_at: { type: 'date' }
+      }
+    },
+    
+    // Enhanced plan details
+    plan_details: {
+      properties: {
+        plan_type: { type: 'keyword' },
+        county_code: { type: 'keyword' },
+        variant: { type: 'keyword' },
+        full_plan_name: { type: 'text', analyzer: 'standard' },
+        document_type: { type: 'keyword' },
+        source_url: { type: 'keyword' }
+      }
+    },
+    
+    // Semantic text fields for vector search
+    semantic_text: { type: 'text', analyzer: 'standard' },
+    semantic_vector: { 
+      type: 'dense_vector',
+      dims: 1536,
+      index: true,
+      similarity: 'cosine'
+    },
+    
     metadata: {
       properties: {
         file_name: { type: 'keyword' },
         file_size: { type: 'long' },
         created_at: { type: 'date' },
         updated_at: { type: 'date' },
-        indexed_at: { type: 'date' }
+        indexed_at: { type: 'date' },
+        plan_info: {
+          properties: {
+            plan_type: { type: 'keyword' },
+            county_code: { type: 'keyword' },
+            variant: { type: 'keyword' },
+            document_type: { type: 'keyword' }
+          }
+        }
       }
     }
   }

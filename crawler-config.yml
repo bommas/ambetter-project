@@ -1,64 +1,63 @@
 output_sink: elasticsearch
 output_index: health-plans
 
+# Basic configuration for Elastic Crawler
+
 elasticsearch:
-  cloud_id: ${ELASTIC_CLOUD_ID}
-  api_key: ${ELASTIC_API_KEY}
+  host: https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud
+  port: 443
+  api_key: Z2t5cDdwa0JWVEtzRW5CbkhjbDc6c05ReVZ4NFZIQVdyYnppNlB3V1NxUQ==
   pipeline_enabled: false
 
+
 domains:
-  - url: https://www.ambetterhealth.com/en/tx/2025-brochures-epo/
+  - url: https://www.ambetterhealth.com
+    seed_urls:
+      - https://www.ambetterhealth.com/en/tx/2025-brochures-epo/
     crawl_rules:
-      - type: include
-        pattern: ".*\\.pdf$"
-      - type: exclude
-        pattern: ".*\\.(css|js|png|jpg|jpeg|gif|svg|ico)$"
+      # allow the main brochures page and pagination
+      - policy: allow
+        type: begins
+        pattern: /en/tx/2025-brochures-epo/
+      # allow pagination links (page=2, page=3, etc.)
+      - policy: allow
+        type: regex
+        pattern: /en/tx/2025-brochures-epo/\?page=\d+
+      # allow any sub-paths under the brochures section
+      - policy: allow
+        type: begins
+        pattern: /en/tx/2025-brochures-epo/
+      # deny everything else in domain to avoid crawling full site
+      - policy: deny
+        type: regex
+        pattern: .*
+    # Enable content extraction for better link discovery
+    content_extraction:
+      enabled: true
 
-extraction_rules:
-  - name: "health_plan_metadata"
-    selector: "body"
-    extract:
-      # Basic plan information
-      - name: "plan_name"
-        selector: "h1, h2, h3"
-        type: "text"
-      - name: "plan_type"
-        selector: "text"
-        type: "text"
-        pattern: "\\b(EPO|HMO|PPO|POS)\\b"
-      - name: "county"
-        selector: "text"
-        type: "text"
-        pattern: "\\b(Harris|Dallas|Travis|Bexar|Tarrant|Collin|Fort Bend|Montgomery|Galveston|Brazoria)\\s+County"
-      - name: "tobacco_use"
-        selector: "text"
-        type: "text"
-        pattern: "\\b(tobacco|smoking|smoker)\\b"
-      - name: "premium_range"
-        selector: "text"
-        type: "text"
-        pattern: "\\$\\d+(?:,\\d{3})*(?:\\.\\d{2})?\\s*[-–]\\s*\\$\\d+(?:,\\d{3})*(?:\\.\\d{2})?"
-      - name: "deductible_info"
-        selector: "text"
-        type: "text"
-        pattern: "\\b(deductible|deduct)\\b[:\s]*\\$?\\d+(?:,\\d{3})*(?:\\.\\d{2})?"
-      
-      # Semantic content fields
-      - name: "title"
-        selector: "title, h1, h2"
-        type: "text"
-      - name: "body"
-        selector: "body, main, .content, .main-content"
-        type: "text"
-      - name: "plan_description"
-        selector: "p, .description, .plan-info"
-        type: "text"
-      - name: "benefits_summary"
-        selector: ".benefits, .coverage, .features, ul, ol"
-        type: "text"
+  - url: https://api.centene.com
+    seed_urls:
+      - https://api.centene.com/Brochures/2025/29418PremierTX.pdf
+      - https://api.centene.com/EOC/2025/29418TX014.pdf
+      - https://api.centene.com/EOC/2025/29418TX016.pdf
+      - https://api.centene.com/EOC/2025/29418TX017.pdf
+      - https://api.centene.com/OOC/2025/29418TX014-OC.pdf
+      - https://api.centene.com/OOC/2025/29418TX017-OC.pdf
+    crawl_rules:
+      # allow PDF files from centene API
+      - policy: allow
+        type: regex
+        pattern: .*\.pdf$
+      # deny everything else
+      - policy: deny
+        type: regex
+        pattern: .*
+    # enable binary extraction if PDFs are present 
+    content_extraction:
+      enabled: true
+      mime_types:
+        - "application/pdf"
 
-crawl_settings:
-  max_pages: 100
-  delay_between_pages: 1000
-  respect_robots_txt: true
-  user_agent: "AmbetterCrawler/1.0"
+
+
+

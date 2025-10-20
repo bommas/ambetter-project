@@ -18,21 +18,19 @@ services:
   elastic-crawler:
     image: docker.elastic.co/integrations/crawler:latest
     container_name: ambetter-crawler
-    environment:
-      - ELASTIC_CLOUD_ID=${ELASTIC_CLOUD_ID}
-      - ELASTIC_API_KEY=${ELASTIC_API_KEY}
     volumes:
       - ./crawler-config.yml:/config/crawler-config.yml
-      - ./crawler-data:/data
+    command: jruby bin/crawler crawl /config/crawler-config.yml
     networks:
       - ambetter-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     depends_on:
       - rabbitmq
-    command: ["jruby", "bin/crawler", "crawl", "/config/crawler-config.yml"]
 
 volumes:
   rabbitmq_data:
-  crawler_data:
 
 networks:
   ambetter-network:

@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
       const { stdout, stderr } = await execAsync(`
         docker run --rm \
           -v "$(pwd)/crawler-config.yml:/config/crawler-config.yml" \
-          -e ELASTIC_CLOUD_ID="${process.env.ELASTIC_CLOUD_ID}" \
+          -e ELASTIC_ENDPOINT="${process.env.ELASTIC_ENDPOINT}" \
           -e ELASTIC_API_KEY="${process.env.ELASTIC_API_KEY}" \
           docker.elastic.co/integrations/crawler:latest \
           jruby bin/crawler crawl /config/crawler-config.yml
