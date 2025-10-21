@@ -6,10 +6,21 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  safelist: [
+    'bg-ambetter-magenta',
+    'text-ambetter-magenta',
+    'border-ambetter-magenta',
+    'hover:bg-ambetter-magenta-dark',
+    'hover:text-ambetter-magenta',
+    'hover:border-ambetter-magenta',
+  ],
   theme: {
     extend: {
       colors: {
         ambetter: {
+          magenta: '#C61C71',
+          'magenta-dark': '#B01866',
+          'magenta-light': '#E91E85',
           blue: '#1e40af',
           lightBlue: '#3b82f6',
           darkBlue: '#1e3a8a',

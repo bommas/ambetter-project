@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       results,
-      total: response.hits.total.value,
+      total: typeof response.hits.total === 'number' ? response.hits.total : response.hits.total?.value || 0,
       page,
       limit,
       query,
