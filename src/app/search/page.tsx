@@ -582,12 +582,25 @@ export default function SearchResultsPage() {
                         if (!aiSummaryCache[initialQuery]) {
                           setLoading(true)
                           try {
+                            // Debug: Log what we're sending
+                            console.log('Sending to AI:', {
+                              query: initialQuery,
+                              resultsCount: results.length,
+                              firstResult: results[0] ? {
+                                plan_name: results[0].plan_name,
+                                plan_id: results[0].plan_id,
+                                has_extracted_text: !!results[0].extracted_text,
+                                extracted_text_preview: results[0].extracted_text?.substring(0, 100)
+                              } : null
+                            })
+                            
                             const aiResponse = await fetch('/api/ai-summary', {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
                               body: JSON.stringify({ query: initialQuery, results: results })
                             })
                             const aiData = await aiResponse.json()
+                            console.log('AI Response:', aiData)
                             setAiSummary(aiData.summary)
                             setLastAISummaryQuery(initialQuery)
                             setAiSummaryCache(prev => ({ ...prev, [initialQuery]: aiData.summary }))
