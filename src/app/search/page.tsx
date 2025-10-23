@@ -530,11 +530,11 @@ export default function SearchResultsPage() {
 
             {!loading && results.length > 0 && (
               <div style={styles.resultsSection}>
+                <h2 style={styles.searchResultsTitle}>
+                  Search Results for: {initialQuery}
+                </h2>
                 <p style={styles.resultCount}>
-                  About {results.length} results
-                  {selectedState && ` • State: ${selectedState}`}
-                  {selectedDocumentType && ` • ${(facets.documentTypes || []).find(d => d.value === selectedDocumentType)?.label}`}
-                  {selectedPlanId && ` • ${(facets.planIds || []).find(p => p.value === selectedPlanId)?.label}`}
+                  showing 1 - {Math.min(results.length, 10)} out of {total || results.length}
                 </p>
               
               {results.map((result, index) => {
@@ -543,16 +543,6 @@ export default function SearchResultsPage() {
                 const description = (result.benefits_summary || result.plan_description || (result.extracted_text || '')).replace(/\s+/g, ' ').slice(0, 200)
                 return (
                   <div key={result.id} style={styles.resultCard}>
-                    <div style={styles.resultHeader}>
-                      <a 
-                        href={url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.resultUrl}
-                      >
-                        {url}
-                      </a>
-                    </div>
                     <a 
                       href={url}
                       target="_blank"
@@ -561,14 +551,19 @@ export default function SearchResultsPage() {
                     >
                       {title}
                     </a>
-                    <p style={styles.resultMeta}>
-                      {result.plan_type}{result.county_code ? ` • County: ${result.county_code}` : ''}
-                    </p>
                     {description && (
                       <p style={styles.resultSnippet}>
-                        {description}{description.length >= 200 ? '…' : ''}
+                        {description}...
                       </p>
                     )}
+                    <a 
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.resultUrl}
+                    >
+                      {url}
+                    </a>
                   </div>
                 )
               })}
@@ -819,10 +814,16 @@ const styles: { [key: string]: React.CSSProperties } = {
   resultsSection: {
     marginTop: '20px',
   },
+  searchResultsTitle: {
+    fontSize: '24px',
+    fontWeight: '400',
+    color: '#202124',
+    marginBottom: '8px',
+  },
   resultCount: {
     fontSize: '14px',
-    color: '#5f6368',
-    marginBottom: '20px',
+    color: '#70757a',
+    marginBottom: '24px',
   },
   resultCard: {
     marginBottom: '30px',
