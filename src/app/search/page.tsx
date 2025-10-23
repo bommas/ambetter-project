@@ -12,6 +12,9 @@ interface SearchResult {
   extracted_text: string
   url: string
   document_url: string
+  title?: string
+  benefits_summary?: string
+  plan_description?: string
   _score: number
 }
 
