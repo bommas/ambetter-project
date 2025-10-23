@@ -65,7 +65,10 @@ A comprehensive full-stack Next.js application for searching and analyzing Ambet
 - ✅ **Search Results Page**: With AI summaries and PDF links
 - ✅ **Hybrid Search API**: Lexical + Semantic (ELSER) search
 - ✅ **ELSER Semantic Search**: Contextual understanding with 3 semantic fields
-- ✅ **Faceted Filtering**: State, document type, plan filters
+- ✅ **Faceted Filtering**: State, document type, plan type (dynamic)
+- ✅ **Search Results UX**: Title + description (benefits_summary/plan_description or excerpt)
+- ✅ **Admin: Curations GUI**: Run query, pin ordering, excludes, delete-all; applied in `/api/search`
+- ✅ **Admin: Boosting GUI**: Full mapping rendered with default weights and numeric boosts
 - ✅ **State Consistency**: All states standardized (TX, FL)
 - ✅ **Index Deduplication**: Cleaned 24 duplicate documents
 - ✅ **Ambetter Branding**: Magenta/pink color scheme applied
@@ -581,6 +584,23 @@ ANTHROPIC_API_KEY=your_anthropic_key_here
 ---
 
 ## 📚 API Documentation
+### Admin APIs
+
+- `POST /api/admin/login` → Sets `admin_auth` cookie (default admin/admin; override via env)
+- `POST /api/admin/logout` → Clears cookie and redirects to `/admin/login`
+- `POST /api/admin/ingest` → `{ url, state? }` single-URL ingestion (Puppeteer + pdftotext)
+- `GET /api/admin/curations` → List `{ query, pins[], excludes[] }`
+- `POST /api/admin/curations` → Upsert curation document
+- `DELETE /api/admin/curations?query=...` → Delete one; `?all=true` → delete all
+- `GET /api/admin/boosts` → Latest boosts `{ weights, numeric_boosts }`
+- `POST /api/admin/boosts` → Save boosts
+- `GET /api/admin/boosts/fields` → Flattened mapping fields and types
+
+### Search API Updates
+
+- Filters: `state.keyword`, `county_code.keyword`, `plan_name.keyword`, `plan_type.keyword`, `metadata.plan_info.document_type.keyword`
+- Curations: pins reorder results to top; excludes remove URLs
+- Boosts: numeric boosts (log/sigmoid) applied via `function_score`
 
 ### Search API
 

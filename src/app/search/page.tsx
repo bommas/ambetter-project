@@ -37,6 +37,7 @@ export default function SearchResultsPage() {
   const initialQuery = searchParams?.get('q') || ''
 
   const [query, setQuery] = useState(initialQuery)
+  const [suggestions, setSuggestions] = useState<{ text: string }[]>([])
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [aiSummary, setAiSummary] = useState<string | null>(null)
@@ -227,10 +228,31 @@ export default function SearchResultsPage() {
               <input
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={async (e) => {
+                  const val = e.target.value
+                  setQuery(val)
+                  if (val.trim().length >= 2) {
+                    try {
+                      const res = await fetch(`/api/suggest?q=${encodeURIComponent(val)}`)
+                      const data = await res.json()
+                      setSuggestions(data.suggestions || [])
+                    } catch { setSuggestions([]) }
+                  } else {
+                    setSuggestions([])
+                  }
+                }}
                 style={styles.headerSearchInput}
                 placeholder="Search health plans..."
               />
+              {suggestions.length > 0 && (
+                <div style={{ position: 'absolute', top: '44px', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: 8, boxShadow: '0 8px 16px rgba(0,0,0,0.08)', zIndex: 20 }}>
+                  {suggestions.map((s, i) => (
+                    <div key={i} onMouseDown={() => { setQuery(s.text); setSuggestions([]) }} style={{ padding: '8px 12px', cursor: 'pointer' }}>
+                      {s.text}
+                    </div>
+                  ))}
+                </div>
+              )}
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12 }}>
                 <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5f6368', cursor: 'pointer' }}>
                   <input

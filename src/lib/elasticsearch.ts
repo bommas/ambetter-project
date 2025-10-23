@@ -24,7 +24,8 @@ export const INDICES = {
   ANALYTICS_METRICS: 'analytics-metrics',
   USER_SESSIONS: 'user-sessions',
   CURATIONS: 'search-curations',
-  SEARCH_BOOSTS: 'search-boosts'
+  SEARCH_BOOSTS: 'search-boosts',
+  SUGGEST: 'health-plans-suggest'
 } as const
 
 // Health plan document mapping
