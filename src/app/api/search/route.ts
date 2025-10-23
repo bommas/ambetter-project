@@ -174,10 +174,20 @@ export async function POST(request: NextRequest) {
       filters
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Search API error:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      meta: error?.meta?.body,
+      statusCode: error?.meta?.statusCode,
+      stack: error?.stack
+    })
     return NextResponse.json(
-      { error: 'Search failed' },
+      { 
+        error: 'Search failed',
+        details: error?.message || 'Unknown error',
+        meta: error?.meta?.body?.error || null
+      },
       { status: 500 }
     )
   }
