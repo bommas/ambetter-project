@@ -1173,8 +1173,164 @@ npm install fs-extra
 
 ---
 
-**Last Updated**: October 22, 2025  
-**Version**: 2.0  
+## 🔮 Future Enhancements - Dynamic Index Management
+
+### Multi-Index Architecture with Aliases
+
+#### Requirement 1: Dynamic Index Creation per State/Version
+
+**Question**: Is it possible to create separate indices per state/version when a user enters a URL in the admin "New Documents" screen, using a pattern like `health-plans-{state}-{version}`, and then query them all via an alias?
+
+**Answer**: **Yes, this is absolutely possible!**
+
+**How it would work**:
+
+1. **Dynamic Index Creation**: When a user enters a URL in the admin "New Documents" screen, extract metadata (like state name, version/date) and create a new index with the pattern:
+   - Format: `health-plans-{state}-{version}`
+   - Examples: 
+     - `health-plans-texas-2025`
+     - `health-plans-florida-2025-v2`
+     - `health-plans-california-2025-11`
+
+2. **Elasticsearch Alias**: Create or update an alias `health-plans` that points to all indices matching the pattern `health-plans-*`
+
+3. **Query Behavior**: All search queries would target the alias `health-plans`, which would automatically search across all underlying indices (Texas, Florida, etc.)
+
+**Benefits**:
+- ✅ Separate indices per state/version for easier management
+- ✅ Can reindex/update a single state without affecting others
+- ✅ Easy rollback (just update alias to point to different version)
+- ✅ Can delete old versions independently
+- ✅ Queries remain simple (just query the alias)
+- ✅ Better performance (can optimize each index separately)
+- ✅ Easier troubleshooting and monitoring per state
+
+**Example structure**:
+```
+health-plans-texas-2025-10      (302 docs, 15MB)
+health-plans-florida-2025-10    (242 docs, 12MB)
+health-plans-california-2025-11 (450 docs, 22MB)
+    ↓ (all aliased to)
+health-plans (alias) → queries all indices automatically
+```
+
+**Implementation Notes**:
+- This is a best practice pattern in Elasticsearch
+- Alias can include write index designation for new documents
+- Can add/remove indices from alias without downtime
+- Supports index lifecycle management (ILM)
+
+---
+
+#### Requirement 2: Admin UI for Index Management
+
+**Question**: From the admin UI, can we display all existing indices (queried from Elasticsearch) and provide a delete button for each index?
+
+**Answer**: **Yes, this is completely feasible!**
+
+**How it would work**:
+
+1. **List Existing Indices**: 
+   - Call Elasticsearch API: `GET /_cat/indices/health-plans-*?format=json`
+   - Alternative: `GET /health-plans-*/_stats` for detailed metadata
+   - Returns all indices matching the pattern with:
+     - Index name
+     - Document count
+     - Index size
+     - Creation date
+     - Health status
+
+2. **Delete Index**:
+   - Add a delete button next to each index
+   - Call Elasticsearch API: `DELETE /health-plans-{state}-{version}`
+   - Confirmation dialog before deletion (prevent accidents)
+   - Automatically update alias to remove deleted index
+   - Refresh the index list after deletion
+
+3. **UI Display Example**:
+   ```
+   Existing Indices:
+   ┌──────────────────────────────────────────────────────────────────┐
+   │ Index Name                   Docs    Size   Created      Actions │
+   ├──────────────────────────────────────────────────────────────────┤
+   │ health-plans-texas-2025      302     15MB   2025-10-15   [🗑️]   │
+   │ health-plans-florida-2025    242     12MB   2025-10-18   [🗑️]   │
+   │ health-plans-texas-2024      298     14MB   2024-12-01   [🗑️]   │
+   └──────────────────────────────────────────────────────────────────┘
+   
+   [+ Create New Index]
+   ```
+
+**Elasticsearch APIs Needed**:
+```javascript
+// List all health-plans indices
+GET /_cat/indices/health-plans-*?format=json&h=index,docs.count,store.size,creation.date
+
+// Delete a specific index
+DELETE /health-plans-texas-2024
+
+// Check which indices are in the alias
+GET /_alias/health-plans
+
+// Update alias (add/remove indices)
+POST /_aliases
+{
+  "actions": [
+    { "add": { "index": "health-plans-texas-2025", "alias": "health-plans" } },
+    { "remove": { "index": "health-plans-texas-2024", "alias": "health-plans" } }
+  ]
+}
+```
+
+**Safety Considerations**:
+- ✅ Add confirmation dialog before deletion ("Are you sure you want to delete health-plans-texas-2024?")
+- ✅ Check if index is currently in the alias before deleting
+- ✅ Option to remove from alias without deleting (for archival)
+- ✅ Show index metadata (created date, document count, size)
+- ✅ Restrict deletion to admin users only (already have auth)
+- ✅ Log all index deletions for audit trail
+- ✅ Prevent deletion of the current/active index
+- ✅ Option to create backup before deletion
+
+**Additional Features**:
+- Show which indices are currently in the `health-plans` alias (highlighted)
+- Add/remove indices from alias without deletion
+- Bulk operations (delete multiple indices at once)
+- Export index data before deletion
+- Index health status indicators (green/yellow/red)
+- Search/filter indices by state or date
+- Sort by name, date, size, or document count
+
+**UI Component Structure**:
+```typescript
+// src/app/admin/AdminIndices.tsx
+interface IndexInfo {
+  name: string
+  docCount: number
+  size: string
+  createdDate: string
+  inAlias: boolean
+  health: 'green' | 'yellow' | 'red'
+}
+
+// Features:
+- fetchIndices() → GET /_cat/indices/health-plans-*
+- deleteIndex(name) → DELETE /index-name
+- addToAlias(name) → POST /_aliases
+- removeFromAlias(name) → POST /_aliases
+```
+
+**This is 100% feasible and would provide**:
+- Full lifecycle management of health plan indices
+- Easy cleanup of old/obsolete data
+- Clear visibility into data organization
+- Safe deletion with confirmations
+- Flexible alias management
+
+---
+
+**Last Updated**: October 23, 2025  
+**Version**: 2.1  
 **Contributors**: Development Team
 
 ---
