@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import client from '@/lib/elasticsearch'
 import { INDICES } from '@/lib/elasticsearch'
 
+// Force this route to be dynamic (not statically generated)
+export const dynamic = 'force-dynamic'
+
 interface SearchRequest {
   query: string
   filters?: {
