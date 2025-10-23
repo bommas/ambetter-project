@@ -64,46 +64,55 @@ export async function GET(request: NextRequest) {
             terms: {
               field: 'state.keyword',
               size: 50,
-              order: { _key: 'asc' }
+              order: { _key: 'asc' },
+              missing: 'N/A'
             }
           },
           counties: {
             terms: {
               field: 'county_code.keyword',
               size: 100,
-              order: { _key: 'asc' }
+              order: { _key: 'asc' },
+              missing: 'N/A'
             }
           },
           document_types: {
             terms: {
               field: 'metadata.plan_info.document_type.keyword',
               size: 50,
-              order: { _count: 'desc' }
+              order: { _count: 'desc' },
+              missing: 'Other'
             }
           },
           plan_names: {
             terms: {
               field: 'plan_name.keyword',
               size: 100,
-              order: { _count: 'desc' }
+              order: { _count: 'desc' },
+              missing: 'Unknown'
             }
           },
           plan_ids: {
             terms: {
               field: 'plan_id.keyword',
               size: 50,
-              order: { _key: 'asc' }
+              order: { _key: 'asc' },
+              missing: 'Unknown'
             }
           },
           plan_types: {
             terms: {
               field: 'plan_type.keyword',
               size: 50,
-              order: { _count: 'desc' }
+              order: { _count: 'desc' },
+              missing: 'Other'
             }
           }
         }
       }
+    }).catch((err) => {
+      console.error('Elasticsearch facets query failed:', err)
+      throw err
     })
 
     // Format the aggregation results
@@ -222,10 +231,18 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(facets)
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Facets API error:', error)
+    console.error('Error details:', {
+      message: error?.message,
+      meta: error?.meta?.body,
+      statusCode: error?.meta?.statusCode
+    })
     return NextResponse.json(
-      { error: 'Failed to fetch facets' },
+      { 
+        error: 'Failed to fetch facets',
+        details: error?.message || 'Unknown error'
+      },
       { status: 500 }
     )
   }
