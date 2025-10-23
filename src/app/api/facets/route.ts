@@ -10,18 +10,55 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams
     const query = searchParams.get('query') || '*'
+    const state = searchParams.get('state') || ''
+    const county = searchParams.get('county') || ''
+    const documentType = searchParams.get('documentType') || ''
+    const plan = searchParams.get('plan') || ''
+    const planId = searchParams.get('planId') || ''
+
+    // Build base query with contextual filters (conjunctive faceting)
+    const mustClauses: any[] = []
+    const filterClauses: any[] = []
+
+    if (query !== '*') {
+      mustClauses.push({
+        multi_match: {
+          query,
+          fields: ['state', 'county', 'plan_name', 'extracted_text']
+        }
+      })
+    }
+
+    if (state) {
+      filterClauses.push({ term: { 'state.keyword': state } })
+    }
+    if (county) {
+      filterClauses.push({ term: { 'county_code.keyword': county } })
+    }
+    if (plan) {
+      filterClauses.push({ term: { 'plan_name.keyword': plan } })
+    }
+    if (planId) {
+      filterClauses.push({ term: { 'plan_id.keyword': planId } })
+    }
+    if (documentType) {
+      // Facet uses metadata.plan_info.document_type, so filter on the same
+      filterClauses.push({ term: { 'metadata.plan_info.document_type.keyword': documentType } })
+    }
+
+    const esQuery: any = {
+      bool: {
+        must: mustClauses.length ? mustClauses : [{ match_all: {} }],
+        filter: filterClauses
+      }
+    }
 
     // Build aggregations for facets
     const response = await client.search({
       index: INDICES.HEALTH_PLANS,
       body: {
         size: 0, // We only want aggregations, not documents
-        query: query === '*' ? { match_all: {} } : {
-          multi_match: {
-            query,
-            fields: ['state', 'county', 'plan_name', 'extracted_text']
-          }
-        },
+        query: esQuery,
         aggs: {
           states: {
             terms: {

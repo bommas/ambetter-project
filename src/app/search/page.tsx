@@ -56,7 +56,15 @@ export default function SearchResultsPage() {
 
   const loadFacets = async (searchQuery: string) => {
     try {
-      const response = await fetch(`/api/facets?query=${encodeURIComponent(searchQuery)}`)
+      const params = new URLSearchParams()
+      params.set('query', searchQuery || '*')
+      if (selectedState) params.set('state', selectedState)
+      if (selectedCounty) params.set('county', selectedCounty)
+      if (selectedDocumentType) params.set('documentType', selectedDocumentType)
+      if (selectedPlan) params.set('plan', selectedPlan)
+      if (selectedPlanId) params.set('planId', selectedPlanId)
+
+      const response = await fetch(`/api/facets?${params.toString()}`)
       const data = await response.json()
       setFacets(data)
     } catch (error) {
@@ -128,6 +136,8 @@ export default function SearchResultsPage() {
       documentType: selectedDocumentType,
       planId: selectedPlanId
     })
+    // Reload facets with current selections to reflect contextual counts
+    loadFacets(initialQuery)
   }
 
   const clearFilters = () => {
@@ -137,6 +147,7 @@ export default function SearchResultsPage() {
     setSelectedPlan('')
     setSelectedPlanId('')
     performSearch(initialQuery, {})
+    loadFacets(initialQuery)
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
