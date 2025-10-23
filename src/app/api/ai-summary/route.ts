@@ -6,6 +6,8 @@ interface SearchResult {
   plan_type: string
   county_code: string
   extracted_text: string
+  url?: string
+  document_url?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -59,6 +61,7 @@ ${i + 1}. ${r.plan_name || r.plan_id}
    - Type: ${r.plan_type}
    - County: ${r.county_code}
    - Excerpt: ${r.extracted_text?.substring(0, 500)}...
+   - Source: ${r.document_url || r.url || 'N/A'}
    - Citation: (see ${r.plan_name || r.plan_id} in context document)
 `).join('\n')}
 

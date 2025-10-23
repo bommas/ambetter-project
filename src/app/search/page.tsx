@@ -369,6 +369,21 @@ export default function SearchResultsPage() {
                   <h2 style={styles.aiTitle}>AI Summary</h2>
                 </div>
                 <p style={styles.aiText}>{aiSummary}</p>
+                {results && results.length > 0 && (
+                  <div style={{ marginTop: '12px' }}>
+                    <div style={{ fontSize: '12px', color: '#5f6368', marginBottom: '6px' }}>Sources</div>
+                    <ul style={{ margin: 0, paddingLeft: '16px' }}>
+                      {results.slice(0, 3).map((r) => (
+                        <li key={r.id} style={{ fontSize: '12px', marginBottom: '4px' }}>
+                          <a href={r.document_url || r.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>
+                            {r.plan_name || r.plan_id}
+                          </a>
+                          <span style={{ color: '#5f6368' }}> — {r.document_url || r.url}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             )}
 
