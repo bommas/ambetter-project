@@ -60,12 +60,7 @@ export async function POST(request: NextRequest) {
       from: (page - 1) * limit,
       size: limit,
       collapse: {
-        field: 'plan_id.keyword', // Deduplicate by plan ID (more reliable than URL with query params)
-        inner_hits: {
-          name: 'top_chunk',
-          size: 1,
-          _source: ['extracted_text', 'document_url']
-        }
+        field: 'plan_id.keyword' // Deduplicate by plan ID (more reliable than URL with query params)
       },
       _source: [
         'title',
