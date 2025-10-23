@@ -54,6 +54,13 @@ npm run dev
 - 🛠️ **Technology Stack**: Complete system component overview
 - 📊 **End-to-End Data Flow**: From admin ingestion to user search results
 
+#### **[🎯 DEMO_101_FLOWS.md](./DEMO_101_FLOWS.md)** - Demo Flow Diagrams ⭐ NEW
+- 📱 **User Journey Flows**: Step-by-step user experience diagrams
+- 🤖 **AI Summary Flow**: How the optional AI summary works
+- 👨‍💼 **Admin Management Flow**: Admin panel workflows
+- 🔧 **System Architecture Flows**: Technical process flows
+- 🎯 **Demo Scenarios**: Ready-to-use demo scripts
+
 ---
 
 ## 🎯 What is This?
