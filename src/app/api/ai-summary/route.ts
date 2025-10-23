@@ -15,6 +15,19 @@ export async function POST(request: NextRequest) {
   try {
     const { query, results } = await request.json()
 
+    // Debug logging
+    console.log('AI Summary Request:', {
+      query,
+      resultsCount: results?.length || 0,
+      firstResult: results?.[0] ? {
+        plan_name: results[0].plan_name,
+        plan_id: results[0].plan_id,
+        plan_type: results[0].plan_type,
+        has_extracted_text: !!results[0].extracted_text,
+        extracted_text_length: results[0].extracted_text?.length || 0
+      } : null
+    })
+
     // Check cache first
     const resultsHash = hashResults(results || [])
     const cachedSummary = await getCachedSummary(query, resultsHash)
