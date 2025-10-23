@@ -541,11 +541,22 @@ export default function SearchResultsPage() {
               
               {results.map((result, index) => {
                 const url = result.document_url || result.url
-                const title = result.plan_name || result.title || result.plan_id || 'Plan'
-                const description = (result.benefits_summary || result.plan_description || (result.extracted_text || ''))
-                  .replace(/\s+/g, ' ')
-                  .trim()
-                  .slice(0, 160) // Shorter snippets like Google/Ambetter
+                
+                // Extract plan ID from URL or body
+                const planIdMatch = url.match(/\/(\d+[A-Z]+\d+-\d+)\.pdf/) || 
+                                   (result.extracted_text || '').match(/(\d+[A-Z]+\d+-\d+)/)
+                const planId = planIdMatch ? planIdMatch[1] : result.plan_id
+                
+                // Clean title: Plan Name - Plan ID
+                let title = result.plan_name || result.title || 'Health Plan'
+                title = title.replace(/Major Medical Expense Policy.*$/i, '').trim()
+                if (planId && !title.includes(planId)) {
+                  title = `${title} - ${planId}`
+                }
+                
+                // Very short description - just the policy type
+                const description = `2025 Major Medical Expense Policy`
+                
                 return (
                   <div key={result.id} style={styles.resultCard}>
                     <a 

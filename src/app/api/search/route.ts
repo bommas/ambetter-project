@@ -51,11 +51,19 @@ export async function POST(request: NextRequest) {
     // Build the Elasticsearch query with custom weights
     const searchQuery = buildSearchQuery(query, filters, sortBy, mode, textWeights)
     
-    // Construct the full Elasticsearch request body
+    // Construct the full Elasticsearch request body with collapse to deduplicate
     const esRequestBody = {
       ...searchQuery,
       from: (page - 1) * limit,
       size: limit,
+      collapse: {
+        field: 'document_url.keyword', // Deduplicate by document URL
+        inner_hits: {
+          name: 'top_chunk',
+          size: 1,
+          _source: ['extracted_text']
+        }
+      },
       _source: [
         'title',
         'plan_name',
