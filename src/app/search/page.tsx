@@ -542,7 +542,10 @@ export default function SearchResultsPage() {
               {results.map((result, index) => {
                 const url = result.document_url || result.url
                 const title = result.plan_name || result.title || result.plan_id || 'Plan'
-                const description = (result.benefits_summary || result.plan_description || (result.extracted_text || '')).replace(/\s+/g, ' ').slice(0, 200)
+                const description = (result.benefits_summary || result.plan_description || (result.extracted_text || ''))
+                  .replace(/\s+/g, ' ')
+                  .trim()
+                  .slice(0, 160) // Shorter snippets like Google/Ambetter
                 return (
                   <div key={result.id} style={styles.resultCard}>
                     <a 
