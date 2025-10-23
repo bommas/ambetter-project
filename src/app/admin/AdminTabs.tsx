@@ -6,9 +6,10 @@ import dynamic from 'next/dynamic'
 const AdminIngest = dynamic(() => import('./AdminIngest'), { ssr: false })
 const AdminCurations = dynamic(() => import('./AdminCurations'), { ssr: false })
 const AdminBoosts = dynamic(() => import('./AdminBoosts'), { ssr: false })
+const AdminIndices = dynamic(() => import('./AdminIndices'), { ssr: false })
 
 export default function AdminTabs() {
-  const [active, setActive] = useState<'ingest' | 'curations' | 'boosts'>('ingest')
+  const [active, setActive] = useState<'ingest' | 'curations' | 'boosts' | 'indices'>('ingest')
 
   const tabStyle = (key: string) => ({
     padding: '8px 12px',
@@ -22,6 +23,7 @@ export default function AdminTabs() {
     <div>
       <div style={{ display: 'flex', gap: 12, borderBottom: '1px solid #e2e8f0', marginBottom: 16 }}>
         <div style={tabStyle('ingest')} onClick={() => setActive('ingest')}>New Documents</div>
+        <div style={tabStyle('indices')} onClick={() => setActive('indices')}>Indices</div>
         <div style={tabStyle('curations')} onClick={() => setActive('curations')}>Curations</div>
         <div style={tabStyle('boosts')} onClick={() => setActive('boosts')}>Boosting</div>
       </div>
@@ -31,6 +33,14 @@ export default function AdminTabs() {
           <h2 style={{ fontSize: 16, marginBottom: 8 }}>New Documents</h2>
           <AdminIngest />
           <p style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>Runs the crawler and PDF extractor on the provided Ambetter URL.</p>
+        </section>
+      )}
+
+      {active === 'indices' && (
+        <section>
+          <h2 style={{ fontSize: 16, marginBottom: 8 }}>Index Management</h2>
+          <AdminIndices />
+          <p style={{ color: '#64748b', fontSize: 12, marginTop: 6 }}>Manage Elasticsearch indices and aliases for health plan data.</p>
         </section>
       )}
 
