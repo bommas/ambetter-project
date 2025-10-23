@@ -3,11 +3,14 @@
 import { useEffect, useState } from 'react'
 
 interface BoostDoc { weights?: Record<string, number>; numeric_boosts?: { field: string; type: 'log'|'sigmoid'; factor?: number }[] }
+interface FieldInfo { name: string; type: string }
 
 export default function AdminBoosts() {
   const [doc, setDoc] = useState<BoostDoc>({ weights: {}, numeric_boosts: [] })
   const [saving, setSaving] = useState(false)
+  const [fields, setFields] = useState<FieldInfo[]>([])
   const [error, setError] = useState('')
+  const numericTypes = new Set(['long','integer','float','double','date'])
 
   const load = async () => {
     try {
@@ -17,6 +20,11 @@ export default function AdminBoosts() {
     } catch (e) {
       // ignore
     }
+    try {
+      const res2 = await fetch('/api/admin/boosts/fields', { cache: 'no-store' })
+      const data2 = await res2.json()
+      setFields(data2.fields || [])
+    } catch (e) { /* ignore */ }
   }
 
   useEffect(() => { load() }, [])
@@ -49,49 +57,95 @@ export default function AdminBoosts() {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        <div>
-          <h3 style={{ margin: 0, marginBottom: 8 }}>Text Field Weights</h3>
-          <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 10 }}>
-            {Object.entries(doc.weights || {}).map(([field, val]) => (
-              <div key={field} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <input value={field} disabled style={{ width: 240, height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px' }} />
-                <input type="number" value={val as number} onChange={e => setDoc(prev => ({ ...prev, weights: { ...(prev.weights || {}), [field]: Number(e.target.value) } }))} style={{ width: 120, height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px' }} />
-                <button onClick={() => setDoc(prev => { const nw = { ...(prev.weights || {}) }; delete nw[field]; return { ...prev, weights: nw } })} style={{ height: 32, padding: '0 10px' }}>Remove</button>
-              </div>
-            ))}
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input placeholder="field name" id="new-weight-field" style={{ flex: 1, height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px' }} />
-              <input placeholder="weight" id="new-weight-value" type="number" style={{ width: 140, height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px' }} />
-              <button onClick={() => {
-                const f = (document.getElementById('new-weight-field') as HTMLInputElement).value.trim()
-                const v = Number((document.getElementById('new-weight-value') as HTMLInputElement).value)
-                if (f && !Number.isNaN(v)) setDoc(prev => ({ ...prev, weights: { ...(prev.weights || {}), [f]: v } }))
-              }}>Add</button>
-            </div>
-          </div>
+      <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, overflow: 'hidden' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 0, background: '#f8fafc', padding: '8px 10px', borderBottom: '1px solid #e2e8f0', fontSize: 12, color: '#475569' }}>
+          <div>Field (type)</div>
+          <div>Text weight</div>
+          <div>Numeric boost</div>
+          <div>Factor</div>
         </div>
-        <div>
-          <h3 style={{ margin: 0, marginBottom: 8 }}>Numeric Boosts</h3>
-          <div style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 10 }}>
-            {(doc.numeric_boosts || []).map((nb, idx) => (
-              <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-                <input placeholder="field" value={nb.field} onChange={e => setDoc(prev => { const arr = [...(prev.numeric_boosts || [])]; arr[idx] = { ...arr[idx], field: e.target.value }; return { ...prev, numeric_boosts: arr } })} style={{ width: 240, height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px' }} />
-                <select value={nb.type} onChange={e => setDoc(prev => { const arr = [...(prev.numeric_boosts || [])]; arr[idx] = { ...arr[idx], type: e.target.value as any }; return { ...prev, numeric_boosts: arr } })} style={{ height: 32, border: '1px solid #cbd5e1', borderRadius: 6 }}>
-                  <option value="log">log</option>
-                  <option value="sigmoid">sigmoid</option>
-                </select>
-                <input placeholder="factor" type="number" value={nb.factor ?? 1} onChange={e => setDoc(prev => { const arr = [...(prev.numeric_boosts || [])]; arr[idx] = { ...arr[idx], factor: Number(e.target.value) }; return { ...prev, numeric_boosts: arr } })} style={{ width: 120, height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px' }} />
-                <button onClick={() => setDoc(prev => { const arr = [...(prev.numeric_boosts || [])]; arr.splice(idx, 1); return { ...prev, numeric_boosts: arr } })}>Remove</button>
+        <div style={{ maxHeight: 480, overflow: 'auto' }}>
+          {fields.map((f) => {
+            const isText = f.type === 'text' || f.type === 'keyword'
+            const isNum = numericTypes.has(f.type)
+            const weightVal = (doc.weights || {})[f.name] ?? (isText ? 1 : '')
+            const nb = (doc.numeric_boosts || []).find(b => b.field === f.name)
+            const nbType = nb?.type || ''
+            const nbFactor = nb?.factor ?? ''
+            return (
+              <div key={f.name} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 0, alignItems: 'center', padding: '8px 10px', borderBottom: '1px solid #f1f5f9' }}>
+                <div style={{ fontSize: 12 }}>
+                  <div style={{ fontWeight: 600 }}>{f.name}</div>
+                  <div style={{ color: '#64748b' }}>{f.type}</div>
+                </div>
+                <div>
+                  <input
+                    disabled={!isText}
+                    value={weightVal as any}
+                    onChange={e => {
+                      const v = e.target.value
+                      setDoc(prev => {
+                        const weights = { ...(prev.weights || {}) }
+                        if (!isText || v === '' || Number.isNaN(Number(v))) delete weights[f.name]
+                        else weights[f.name] = Number(v)
+                        return { ...prev, weights }
+                      })
+                    }}
+                    placeholder={isText ? '1.0' : 'N/A'}
+                    style={{ width: '90%', height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px', background: isText ? '#fff' : '#f1f5f9' }}
+                  />
+                </div>
+                <div>
+                  <select
+                    disabled={!isNum}
+                    value={nbType}
+                    onChange={e => {
+                      const t = e.target.value as any
+                      setDoc(prev => {
+                        const arr = [...(prev.numeric_boosts || [])]
+                        const idx = arr.findIndex(b => b.field === f.name)
+                        if (!t) {
+                          if (idx >= 0) arr.splice(idx, 1)
+                        } else {
+                          if (idx >= 0) arr[idx] = { ...arr[idx], field: f.name, type: t }
+                          else arr.push({ field: f.name, type: t, factor: 1 })
+                        }
+                        return { ...prev, numeric_boosts: arr }
+                      })
+                    }}
+                    style={{ width: '90%', height: 32, border: '1px solid #cbd5e1', borderRadius: 6, background: isNum ? '#fff' : '#f1f5f9' }}
+                  >
+                    <option value="">None</option>
+                    <option value="log">log</option>
+                    <option value="sigmoid">sigmoid</option>
+                  </select>
+                </div>
+                <div>
+                  <input
+                    disabled={!isNum || !nbType}
+                    value={nbFactor as any}
+                    onChange={e => {
+                      const v = Number(e.target.value)
+                      setDoc(prev => {
+                        const arr = [...(prev.numeric_boosts || [])]
+                        const idx = arr.findIndex(b => b.field === f.name)
+                        if (idx >= 0) arr[idx] = { ...arr[idx], factor: Number.isNaN(v) ? undefined : v }
+                        else if (nbType) arr.push({ field: f.name, type: nbType as any, factor: Number.isNaN(v) ? undefined : v })
+                        return { ...prev, numeric_boosts: arr }
+                      })
+                    }}
+                    placeholder={isNum ? '1.0' : 'N/A'}
+                    style={{ width: '90%', height: 32, border: '1px solid #cbd5e1', borderRadius: 6, padding: '0 8px', background: (isNum && nbType) ? '#fff' : '#f1f5f9' }}
+                  />
+                </div>
               </div>
-            ))}
-            <button onClick={onAddNumeric}>Add numeric boost</button>
-          </div>
+            )
+          })}
         </div>
       </div>
       {error && <div style={{ color: '#b91c1c', fontSize: 12, marginTop: 6 }}>{error}</div>}
       <div style={{ marginTop: 10 }}>
-        <button disabled={saving} onClick={onSave} style={{ height: 36, padding: '0 12px', background: '#0ea5e9', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer' }}>{saving ? 'Saving...' : 'Save Changes'}</button>
+        <button disabled={saving} onClick={onSave} style={{ height: 36, padding: '0 12px', background: '#0ea5e9', color: '#fff', border: 0, borderRadius: 6, cursor: 'pointer' }}>{saving ? 'Saving…' : 'Save Changes'}</button>
       </div>
     </div>
   )

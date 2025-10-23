@@ -46,6 +46,7 @@ export default function SearchResultsPage() {
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>('')
   const [selectedPlan, setSelectedPlan] = useState<string>('')
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
+  const [selectedPlanType, setSelectedPlanType] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'semantic' | 'keyword'>('semantic')
   const [lastAISummaryQuery, setLastAISummaryQuery] = useState<string>('')
   const [aiSummaryCache, setAiSummaryCache] = useState<Record<string, string>>({})
@@ -66,6 +67,7 @@ export default function SearchResultsPage() {
       if (selectedDocumentType) params.set('documentType', selectedDocumentType)
       if (selectedPlan) params.set('plan', selectedPlan)
       if (selectedPlanId) params.set('planId', selectedPlanId)
+      if (selectedPlanType) params.set('planType', selectedPlanType)
 
       const response = await fetch(`/api/facets?${params.toString()}`)
       const data = await response.json()
@@ -145,6 +147,20 @@ export default function SearchResultsPage() {
   }
 
   const handleFilterChange = () => {
+    performSearch(initialQuery, {
+      state: selectedState,
+      county: selectedCounty,
+      plan: selectedPlan,
+      documentType: selectedDocumentType,
+      planId: selectedPlanId,
+      mode: searchMode
+    })
+    // Reload facets with current selections to reflect contextual counts
+    loadFacets(initialQuery)
+  }
+
+  const handlePlanTypeChange = (val: string) => {
+    setSelectedPlanType(val)
     performSearch(initialQuery, {
       state: selectedState,
       county: selectedCounty,
@@ -252,6 +268,43 @@ export default function SearchResultsPage() {
               <button onClick={clearFilters} style={styles.clearAllButton}>
                 Clear All Filters
               </button>
+            )}
+
+            {/* Plan Type Filter */}
+            {Array.isArray(facets.planTypes) && facets.planTypes.length > 0 && (
+              <div style={styles.filterSection}>
+                <div style={styles.filterHeader}>
+                  <h3 style={styles.filterTitle}>Plan Type</h3>
+                </div>
+                <div style={styles.filterOptions}>
+                  <label style={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="planType"
+                      value=""
+                      checked={selectedPlanType === ''}
+                      onChange={() => handlePlanTypeChange('')}
+                      style={styles.radioInput}
+                    />
+                    <span style={styles.radioText}>All Plan Types</span>
+                    <span style={styles.countBadge}>{(facets.planTypes || []).reduce((sum, p) => sum + p.count, 0)}</span>
+                  </label>
+                  {(facets.planTypes || []).map((pt) => (
+                    <label key={pt.value} style={styles.radioLabel}>
+                      <input
+                        type="radio"
+                        name="planType"
+                        value={pt.value}
+                        checked={selectedPlanType === pt.value}
+                        onChange={() => handlePlanTypeChange(pt.value)}
+                        style={styles.radioInput}
+                      />
+                      <span style={styles.radioText}>{pt.label}</span>
+                      <span style={styles.countBadge}>{pt.count}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
             )}
 
             {/* State Filter - TOP OF LIST */}
@@ -458,34 +511,41 @@ export default function SearchResultsPage() {
                   {selectedPlanId && ` • ${(facets.planIds || []).find(p => p.value === selectedPlanId)?.label}`}
                 </p>
               
-              {results.map((result, index) => (
-                <div key={result.id} style={styles.resultCard}>
-                  <div style={styles.resultHeader}>
+              {results.map((result, index) => {
+                const url = result.document_url || result.url
+                const title = result.plan_name || result.title || result.plan_id || 'Plan'
+                const description = (result.benefits_summary || result.plan_description || (result.extracted_text || '')).replace(/\s+/g, ' ').slice(0, 200)
+                return (
+                  <div key={result.id} style={styles.resultCard}>
+                    <div style={styles.resultHeader}>
+                      <a 
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={styles.resultUrl}
+                      >
+                        {url}
+                      </a>
+                    </div>
                     <a 
-                      href={result.document_url || result.url}
+                      href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={styles.resultUrl}
+                      style={styles.resultTitle}
                     >
-                      {result.document_url || result.url}
+                      {title}
                     </a>
+                    <p style={styles.resultMeta}>
+                      {result.plan_type}{result.county_code ? ` • County: ${result.county_code}` : ''}
+                    </p>
+                    {description && (
+                      <p style={styles.resultSnippet}>
+                        {description}{description.length >= 200 ? '…' : ''}
+                      </p>
+                    )}
                   </div>
-                  <a 
-                    href={result.document_url || result.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={styles.resultTitle}
-                  >
-                    {result.plan_name || result.plan_id}
-                  </a>
-                  <p style={styles.resultMeta}>
-                    {result.plan_type} • County: {result.county_code}
-                  </p>
-                  <p style={styles.resultSnippet}>
-                    {result.extracted_text?.substring(0, 200)}...
-                  </p>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
 

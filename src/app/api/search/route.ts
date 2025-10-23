@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/lib/elasticsearch'
 import { INDICES } from '@/lib/elasticsearch'
-import client from '@/lib/elasticsearch'
 
 interface SearchRequest {
   query: string
@@ -66,6 +65,7 @@ export async function POST(request: NextRequest) {
     ])
 
     const pins: string[] = (curationsResp as any)?.['_source']?.pins || []
+    const excludes: string[] = (curationsResp as any)?.['_source']?.excludes || []
     const boostsDoc: any = boostsResp?.hits?.hits?.[0]?.['_source'] || {}
 
     // Apply numeric boosts via function_score if configured
@@ -107,6 +107,12 @@ export async function POST(request: NextRequest) {
         _score: hit._score
       }
     })
+
+    // Apply excludes (remove matches by URL)
+    if (excludes.length > 0) {
+      const excludeSet = new Set(excludes)
+      results = results.filter(r => !excludeSet.has(r.document_url || r.url))
+    }
 
     // Apply pinning (move curated URLs to top in order)
     if (pins.length > 0) {
@@ -240,15 +246,17 @@ function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'se
     })
   }
 
+  // Filter by plan_type
   if (filters.planType && filters.planType.length > 0) {
     mustClauses.push({
-      terms: { 'plan_id.keyword': filters.planType }
+      terms: { 'plan_type.keyword': filters.planType }
     })
   }
 
+  // Filter by document type from metadata
   if (filters.documentType && filters.documentType.length > 0) {
     mustClauses.push({
-      terms: { 'plan_type.keyword': filters.documentType }
+      terms: { 'metadata.plan_info.document_type.keyword': filters.documentType }
     })
   }
 

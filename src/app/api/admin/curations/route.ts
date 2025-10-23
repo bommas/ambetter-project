@@ -5,6 +5,7 @@ import client, { INDICES } from '@/lib/elasticsearch'
 // {
 //   query: string (lowercased exact match)
 //   pins: string[] (array of document_url or url to pin in order)
+//   excludes: string[] (array of urls to hide from results)
 //   updated_at: date
 // }
 
@@ -14,7 +15,7 @@ export async function GET() {
       index: INDICES.CURATIONS,
       body: { size: 1000, query: { match_all: {} }, sort: [{ 'updated_at': { order: 'desc' } }] }
     })
-    const items = resp.hits.hits.map((h: any) => ({ id: h._id, ...(h._source || {}) }))
+    const items = resp.hits.hits.map((h: any) => ({ id: h._id, excludes: [], ...(h._source || {}) }))
     return NextResponse.json({ items })
   } catch (e) {
     return NextResponse.json({ items: [] })
@@ -23,7 +24,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { query, pins } = await request.json()
+    const { query, pins, excludes } = await request.json()
     if (!query || !Array.isArray(pins)) {
       return NextResponse.json({ ok: false, error: 'query and pins[] required' }, { status: 400 })
     }
@@ -32,7 +33,7 @@ export async function POST(request: NextRequest) {
       index: INDICES.CURATIONS,
       id,
       refresh: 'wait_for',
-      body: { query: query.toLowerCase(), pins, updated_at: new Date().toISOString() }
+      body: { query: query.toLowerCase(), pins, excludes: Array.isArray(excludes) ? excludes : [], updated_at: new Date().toISOString() }
     })
     return NextResponse.json({ ok: true })
   } catch (e) {
@@ -43,10 +44,19 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+    const all = searchParams.get('all') === 'true'
     const query = searchParams.get('query') || ''
-    if (!query) return NextResponse.json({ ok: false, error: 'query required' }, { status: 400 })
-    const id = Buffer.from(query.toLowerCase()).toString('base64')
-    await client.delete({ index: INDICES.CURATIONS, id, refresh: 'wait_for' })
+    if (all) {
+      await client.deleteByQuery({
+        index: INDICES.CURATIONS,
+        refresh: true,
+        body: { query: { match_all: {} } }
+      })
+    } else {
+      if (!query) return NextResponse.json({ ok: false, error: 'query required' }, { status: 400 })
+      const id = Buffer.from(query.toLowerCase()).toString('base64')
+      await client.delete({ index: INDICES.CURATIONS, id, refresh: 'wait_for' })
+    }
     return NextResponse.json({ ok: true })
   } catch (e) {
     return NextResponse.json({ ok: false, error: 'failed to delete' }, { status: 500 })
