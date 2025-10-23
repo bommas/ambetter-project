@@ -129,11 +129,11 @@ export default function SearchResultsPage() {
       setResults(searchResults)
       setTotal(esData.total || 0)
 
-      // Generate AI Summary only if user requested it
-      if (showAISummary) {
-        if (searchQuery === lastAISummaryQuery && aiSummary) {
-          // Do nothing; keep existing summary
-        } else if (aiSummaryCache[searchQuery]) {
+      // Generate AI Summary only if user explicitly requested it
+      console.log('AI Summary check:', { showAISummary, searchQuery, lastAISummaryQuery })
+      if (showAISummary && searchQuery !== lastAISummaryQuery) {
+        console.log('Generating AI summary from performSearch...')
+        if (aiSummaryCache[searchQuery]) {
           setAiSummary(aiSummaryCache[searchQuery])
           setLastAISummaryQuery(searchQuery)
         } else {
@@ -147,6 +147,8 @@ export default function SearchResultsPage() {
           setLastAISummaryQuery(searchQuery)
           setAiSummaryCache(prev => ({ ...prev, [searchQuery]: aiData.summary }))
         }
+      } else {
+        console.log('Skipping AI summary generation (not requested by user)')
       }
 
     } catch (error) {
@@ -574,7 +576,10 @@ export default function SearchResultsPage() {
                   <h2 style={styles.searchResultsTitle}>
                     Search Results for: {initialQuery}
                   </h2>
-                  {!aiSummary && (
+                  {(() => {
+                    console.log('Button render check:', { aiSummary: !!aiSummary, aiSummaryValue: aiSummary, loading, resultsCount: results.length })
+                    return !aiSummary && !loading && results.length > 0
+                  })() && (
                     <button 
                       onClick={async () => {
                         setShowAISummary(true)
