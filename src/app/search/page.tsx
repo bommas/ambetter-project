@@ -275,6 +275,7 @@ export default function SearchResultsPage() {
                   Keyword
                 </label>
               </div>
+              <button type="submit" style={{ marginLeft: 8, height: 32, padding: '0 12px', borderRadius: 8, border: '1px solid #cbd5e1', background: '#C61C71', color: '#fff', cursor: 'pointer' }}>Search</button>
             </div>
           </form>
         </div>

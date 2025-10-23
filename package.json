@@ -15,6 +15,7 @@
     "@elastic/elasticsearch": "^8.19.1",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@upstash/redis": "^1.35.6",
     "amqplib": "^0.10.3",
     "axios": "^1.12.2",
     "cheerio": "^1.1.2",

@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
   const [query, setQuery] = useState('')
+  const [homeMode, setHomeMode] = useState<'semantic' | 'keyword'>('semantic')
   const router = useRouter()
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (query.trim()) {
-      router.push(`/search?q=${encodeURIComponent(query)}`)
+      router.push(`/search?q=${encodeURIComponent(query)}&mode=${homeMode}`)
     }
   }
 
@@ -45,7 +46,7 @@ export default function HomePage() {
 
           {/* Search Form */}
           <form onSubmit={handleSearch} style={styles.searchForm}>
-            <div style={styles.searchBox}>
+            <div style={{ ...styles.searchBox, position: 'relative' }}>
               <svg style={styles.searchIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
@@ -56,6 +57,16 @@ export default function HomePage() {
                 placeholder="Search for health plans, coverage, benefits..."
                 style={styles.searchInput}
               />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginLeft: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5f6368', cursor: 'pointer' }}>
+                  <input type="radio" name="mode" value="semantic" checked={homeMode === 'semantic'} onChange={() => setHomeMode('semantic')} />
+                  Semantic
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5f6368', cursor: 'pointer' }}>
+                  <input type="radio" name="mode" value="keyword" checked={homeMode === 'keyword'} onChange={() => setHomeMode('keyword')} />
+                  Keyword
+                </label>
+              </div>
               <button type="submit" style={styles.searchButton}>
                 Search
               </button>

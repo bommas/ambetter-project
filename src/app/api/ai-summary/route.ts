@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCachedSummary, cacheSummary, hashResults } from '@/lib/redis'
 
 interface SearchResult {
   plan_name: string
@@ -13,6 +14,13 @@ interface SearchResult {
 export async function POST(request: NextRequest) {
   try {
     const { query, results } = await request.json()
+
+    // Check cache first
+    const resultsHash = hashResults(results || [])
+    const cachedSummary = await getCachedSummary(query, resultsHash)
+    if (cachedSummary) {
+      return NextResponse.json({ summary: cachedSummary, source: 'cache', cached: true })
+    }
 
     if (!process.env.OPENAI_API_KEY) {
       // Fallback to mock summary if no API key
@@ -84,10 +92,14 @@ Task: Based strictly on the context above, provide guidance. If details are miss
     const data = await openaiResponse.json()
     const summary = data.choices[0]?.message?.content || generateMockSummary(query, results)
 
+    // Cache the summary
+    await cacheSummary(query, resultsHash, summary)
+
     return NextResponse.json({
       summary,
       source: 'openai',
-      model: 'gpt-4o-mini'
+      model: 'gpt-4o-mini',
+      cached: false
     })
 
   } catch (error) {

@@ -5,7 +5,10 @@ import { INDICES } from '@/lib/elasticsearch'
 interface SearchRequest {
   query: string
   filters?: {
+    state?: string
     county?: string
+    plan?: string
+    planId?: string
     planType?: string[]
     documentType?: string[]
     tobaccoUse?: boolean
@@ -19,7 +22,7 @@ interface SearchRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: SearchRequest = await request.json()
-    const { query, filters = {}, page = 1, limit = 20, sortBy = 'relevance', mode = 'semantic' } = body
+    let { query, filters = {}, page = 1, limit = 20, sortBy = 'relevance', mode = 'semantic' } = body
 
     if (!query || query.trim().length === 0) {
       return NextResponse.json(
@@ -28,8 +31,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Build the Elasticsearch query
-    const searchQuery = buildSearchQuery(query, filters, sortBy, mode)
+    // Auto-detect state from query if not explicitly filtered
+    if (!filters.state) {
+      const detectedState = detectStateFromQuery(query)
+      if (detectedState) {
+        filters = { ...filters, state: detectedState }
+        console.log(`🎯 Auto-detected state: ${detectedState} from query: "${query}"`)
+      }
+    }
+
+    // Load boosts configuration
+    const boostsResp = await client.search({ 
+      index: INDICES.SEARCH_BOOSTS, 
+      body: { size: 1, sort: [{ 'updated_at': { order: 'desc' } }] } 
+    }).catch(() => null)
+    const boostsDoc: any = boostsResp?.hits?.hits?.[0]?.['_source'] || {}
+    const textWeights = boostsDoc.weights || {}
+
+    // Build the Elasticsearch query with custom weights
+    const searchQuery = buildSearchQuery(query, filters, sortBy, mode, textWeights)
     
     // Construct the full Elasticsearch request body
     const esRequestBody = {
@@ -58,15 +78,14 @@ export async function POST(request: NextRequest) {
       size: esRequestBody.size
     }, null, 2))
     
-    // Load curations and boosts
-    const [curationsResp, boostsResp] = await Promise.all([
-      client.get({ index: INDICES.CURATIONS, id: Buffer.from(query.toLowerCase()).toString('base64') }).catch(() => null),
-      client.search({ index: INDICES.SEARCH_BOOSTS, body: { size: 1, sort: [{ 'updated_at': { order: 'desc' } }] } }).catch(() => null)
-    ])
+    // Load curations for pin/exclude logic
+    const curationsResp = await client.get({ 
+      index: INDICES.CURATIONS, 
+      id: Buffer.from(query.toLowerCase()).toString('base64') 
+    }).catch(() => null)
 
     const pins: string[] = (curationsResp as any)?.['_source']?.pins || []
     const excludes: string[] = (curationsResp as any)?.['_source']?.excludes || []
-    const boostsDoc: any = boostsResp?.hits?.hits?.[0]?.['_source'] || {}
 
     // Apply numeric boosts via function_score if configured
     const functions: any[] = []
@@ -153,9 +172,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'semantic' | 'keyword' = 'semantic') {
+function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'semantic' | 'keyword' = 'semantic', weights: Record<string, number> = {}) {
   const mustClauses: any[] = []
   const shouldClauses: any[] = []
+
+  // Apply custom field weights from boosts config or use defaults
+  const getWeight = (field: string, defaultWeight: number = 1) => {
+    return weights[field] !== undefined ? weights[field] : defaultWeight
+  }
 
   // Main query - hybrid search combining lexical and semantic
   shouldClauses.push(
@@ -164,13 +188,13 @@ function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'se
       multi_match: {
         query,
         fields: [
-          'title^2',
-          'plan_name^2',
-          'state^3',
-          'county^2',
-          'extracted_text^3',
-          'body',
-          'pdf_extracted^3'
+          `title^${getWeight('title', 2)}`,
+          `plan_name^${getWeight('plan_name', 2)}`,
+          `state^${getWeight('state', 3)}`,
+          `county^${getWeight('county', 2)}`,
+          `extracted_text^${getWeight('extracted_text', 3)}`,
+          `body^${getWeight('body', 1)}`,
+          `pdf_extracted^${getWeight('pdf_extracted', 3)}`
         ],
         type: 'best_fields',
         fuzziness: 'AUTO'
@@ -181,11 +205,11 @@ function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'se
       multi_match: {
         query,
         fields: [
-          'title^3',
-          'plan_name^3',
-          'state^4',
-          'extracted_text^2',
-          'pdf_extracted^2'
+          `title^${getWeight('title', 3)}`,
+          `plan_name^${getWeight('plan_name', 3)}`,
+          `state^${getWeight('state', 4)}`,
+          `extracted_text^${getWeight('extracted_text', 2)}`,
+          `pdf_extracted^${getWeight('pdf_extracted', 2)}`
         ],
         type: 'phrase'
       }
@@ -350,6 +374,36 @@ function extractPlanNameFromBody(bodyText: string): string | null {
     }
   }
 
+  return null
+}
+
+/**
+ * Detect state from query text
+ * Matches common state names and abbreviations
+ */
+function detectStateFromQuery(query: string): string | null {
+  const queryLower = query.toLowerCase()
+  
+  // State detection patterns
+  const statePatterns: Record<string, RegExp> = {
+    'TX': /\b(texas|tx)\b/i,
+    'FL': /\b(florida|fl)\b/i,
+    'CA': /\b(california|ca)\b/i,
+    'NY': /\b(new york|ny)\b/i,
+    'IL': /\b(illinois|il)\b/i,
+    'PA': /\b(pennsylvania|pa)\b/i,
+    'OH': /\b(ohio|oh)\b/i,
+    'GA': /\b(georgia|ga)\b/i,
+    'NC': /\b(north carolina|nc)\b/i,
+    'MI': /\b(michigan|mi)\b/i,
+  }
+  
+  for (const [state, pattern] of Object.entries(statePatterns)) {
+    if (pattern.test(queryLower)) {
+      return state
+    }
+  }
+  
   return null
 }
 
