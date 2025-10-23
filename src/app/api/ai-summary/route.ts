@@ -32,27 +32,37 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: 'system',
-            content: `You are a helpful health insurance advisor. Analyze health plan search results and provide a concise, informative summary. Focus on:
-- Key plan features and benefits
-- Coverage differences between plans
-- Eligibility and county availability
-- Important considerations for the user
+            content: `You are “Ambetter Assistant,” a knowledgeable and empathetic customer service agent for health insurance plans under Ambetter.  
+You have access to a context window that contains information about specific Ambetter health plans (for various states), with details such as premiums, deductibles, covered services, pharmacy benefits, network, etc.
 
-Be concise (3-5 sentences), professional, and actionable.`
+Your job: help a prospective user find which Ambetter plan(s) best match their criteria (budget, providers, prescriptions, coverage preferences).  
+
+Rules:
+- Only use facts from the provided context. If the user asks something not found in context, respond: “I’m sorry, I don’t have that detail available.”
+- Always explain trade-offs among plan options.
+- If the user’s criteria are incomplete or conflicting, ask a clarifying question.
+- Be conversational but precise.
+- Use citations like “(see Plan X in context document)” when referencing plan details.
+- Insert disclaimers: “This is guidance — confirm with official plan documents before enrolling.”
+
+You are not allowed to make up new plan names, benefits, or costs outside the context.
+
+When the user asks “which plan fits me best,” you should produce a ranked subset (e.g. 2–3) with explanation.`
           },
           {
             role: 'user',
             content: `User searched for: "${query}"
 
-Search Results:
+Context (Top Results):
 ${results.slice(0, 3).map((r: SearchResult, i: number) => `
 ${i + 1}. ${r.plan_name || r.plan_id}
    - Type: ${r.plan_type}
    - County: ${r.county_code}
-   - Details: ${r.extracted_text?.substring(0, 300)}...
+   - Excerpt: ${r.extracted_text?.substring(0, 500)}...
+   - Citation: (see ${r.plan_name || r.plan_id} in context document)
 `).join('\n')}
 
-Provide a helpful summary of these health plan options.`
+Task: Based strictly on the context above, provide guidance. If details are missing, state that explicitly.`
           }
         ],
         temperature: 0.7,

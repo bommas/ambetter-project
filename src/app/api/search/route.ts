@@ -114,9 +114,9 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
           'plan_name^2',
           'state^3',
           'county^2',
-          'extracted_text',
+          'extracted_text^3',
           'body',
-          'pdf.content'
+          'pdf_extracted^3'
         ],
         type: 'best_fields',
         fuzziness: 'AUTO'
@@ -130,7 +130,8 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
           'title^3',
           'plan_name^3',
           'state^4',
-          'extracted_text^2'
+          'extracted_text^2',
+          'pdf_extracted^2'
         ],
         type: 'phrase'
       }
