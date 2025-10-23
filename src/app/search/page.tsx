@@ -54,6 +54,7 @@ export default function SearchResultsPage() {
   const [selectedPlanType, setSelectedPlanType] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'semantic' | 'keyword'>('semantic')
   const [showAISummary, setShowAISummary] = useState(false) // AI summary is opt-in
+  const [aiSummaryExpanded, setAiSummaryExpanded] = useState(false) // AI summary collapsed by default
   const [lastAISummaryQuery, setLastAISummaryQuery] = useState<string>('')
   const [aiSummaryCache, setAiSummaryCache] = useState<Record<string, string>>({})
 
@@ -117,7 +118,7 @@ export default function SearchResultsPage() {
         body: JSON.stringify({ 
           query: searchQuery, 
           page: 1, 
-          limit: 10,
+          limit: 20, // Show 20 results like Google
           filters: searchFilters,
           mode: filters?.mode || searchMode
         })
@@ -512,19 +513,52 @@ export default function SearchResultsPage() {
               <div style={styles.aiSummaryBox}>
                 <div style={styles.aiHeader}>
                   <div style={styles.aiBadge}>AI Mode</div>
-                  <h2 style={styles.aiTitle}>AI Summary</h2>
+                  <h2 style={styles.aiTitle}>AI Overview</h2>
                 </div>
-                <p style={styles.aiText}>{aiSummary}</p>
+                <div style={{ 
+                  maxHeight: aiSummaryExpanded ? 'none' : '120px', 
+                  overflow: 'hidden',
+                  position: 'relative' 
+                }}>
+                  <p style={styles.aiText}>{aiSummary}</p>
+                  {!aiSummaryExpanded && aiSummary.length > 300 && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: '60px',
+                      background: 'linear-gradient(transparent, #f8f9fa)',
+                      pointerEvents: 'none'
+                    }} />
+                  )}
+                </div>
+                {aiSummary.length > 300 && (
+                  <button
+                    onClick={() => setAiSummaryExpanded(!aiSummaryExpanded)}
+                    style={{
+                      marginTop: '8px',
+                      padding: '6px 12px',
+                      background: 'transparent',
+                      border: 'none',
+                      color: '#1a73e8',
+                      cursor: 'pointer',
+                      fontSize: '14px',
+                      fontWeight: 500
+                    }}
+                  >
+                    {aiSummaryExpanded ? '▲ Show less' : '▼ Show more'}
+                  </button>
+                )}
                 {results && results.length > 0 && (
-                  <div style={{ marginTop: '12px' }}>
-                    <div style={{ fontSize: '12px', color: '#5f6368', marginBottom: '6px' }}>Sources</div>
+                  <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e8eaed' }}>
+                    <div style={{ fontSize: '12px', color: '#5f6368', marginBottom: '6px', fontWeight: 500 }}>Sources</div>
                     <ul style={{ margin: 0, paddingLeft: '16px' }}>
                       {results.slice(0, 3).map((r) => (
                         <li key={r.id} style={{ fontSize: '12px', marginBottom: '4px' }}>
                           <a href={r.document_url || r.url} target="_blank" rel="noopener noreferrer" style={{ color: '#1a73e8', textDecoration: 'none' }}>
                             {r.plan_name || r.plan_id}
                           </a>
-                          <span style={{ color: '#5f6368' }}> — {r.document_url || r.url}</span>
                         </li>
                       ))}
                     </ul>
@@ -582,7 +616,7 @@ export default function SearchResultsPage() {
                   )}
                 </div>
                 <p style={styles.resultCount}>
-                  showing 1 - {Math.min(results.length, 10)} out of {total || results.length}
+                  showing 1 - {Math.min(results.length, 20)} out of {total || results.length}
                 </p>
               
               {results.map((result, index) => {
