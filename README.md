@@ -38,19 +38,21 @@ npm run dev
 
 ## 📖 Complete Documentation
 
-**For complete project documentation, requirements, architecture, and guides, see:**
+### Core Documents
 
-### **[📘 PROJECT_MASTER.md](./PROJECT_MASTER.md)**
-
-This master document contains:
+#### **[📘 PROJECT_MASTER.md](./PROJECT_MASTER.md)** - Complete Project Documentation
 - ✅ Complete project overview and status
-- ✅ System architecture diagrams
-- ✅ Phase 1 & Phase 2 details
+- ✅ Phase 1 & Phase 2 details  
 - ✅ Multi-state setup guide
 - ✅ API documentation
-- ✅ Deployment instructions
 - ✅ Troubleshooting guide
-- ✅ Development workflow
+
+#### **[🏗️ ARCHITECTURE.md](./ARCHITECTURE.md)** - System Architecture & Data Flow ⭐ NEW
+- 📥 **Data Ingestion Flow**: Visual diagrams showing how PDFs are crawled and indexed
+- 🔍 **Search Architecture**: Hybrid search (lexical + semantic) with detailed query examples
+- 🗄️ **Index Management**: Multi-index architecture with state-based versioning
+- 🛠️ **Technology Stack**: Complete system component overview
+- 📊 **End-to-End Data Flow**: From admin ingestion to user search results
 
 ---
 
