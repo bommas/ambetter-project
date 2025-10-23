@@ -46,6 +46,7 @@ export default function SearchResultsPage() {
   const [selectedDocumentType, setSelectedDocumentType] = useState<string>('')
   const [selectedPlan, setSelectedPlan] = useState<string>('')
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
+  const [searchMode, setSearchMode] = useState<'semantic' | 'keyword'>('semantic')
 
   useEffect(() => {
     if (initialQuery) {
@@ -72,7 +73,7 @@ export default function SearchResultsPage() {
     }
   }
 
-  const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string}) => {
+  const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string, mode?: 'semantic' | 'keyword'}) => {
     setLoading(true)
     setAiSummary(null)
     setResults([])
@@ -104,7 +105,8 @@ export default function SearchResultsPage() {
           query: searchQuery, 
           page: 1, 
           limit: 10,
-          filters: searchFilters 
+          filters: searchFilters,
+          mode: filters?.mode || searchMode
         })
       })
       const esData = await esResponse.json()
@@ -134,7 +136,8 @@ export default function SearchResultsPage() {
       county: selectedCounty,
       plan: selectedPlan,
       documentType: selectedDocumentType,
-      planId: selectedPlanId
+      planId: selectedPlanId,
+      mode: searchMode
     })
     // Reload facets with current selections to reflect contextual counts
     loadFacets(initialQuery)
@@ -148,6 +151,18 @@ export default function SearchResultsPage() {
     setSelectedPlanId('')
     performSearch(initialQuery, {})
     loadFacets(initialQuery)
+  }
+
+  const handleModeChange = (mode: 'semantic' | 'keyword') => {
+    setSearchMode(mode)
+    performSearch(initialQuery, {
+      state: selectedState,
+      county: selectedCounty,
+      plan: selectedPlan,
+      documentType: selectedDocumentType,
+      planId: selectedPlanId,
+      mode
+    })
   }
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -186,6 +201,28 @@ export default function SearchResultsPage() {
                 style={styles.headerSearchInput}
                 placeholder="Search health plans..."
               />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 12 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5f6368', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="searchMode"
+                    value="semantic"
+                    checked={searchMode === 'semantic'}
+                    onChange={() => handleModeChange('semantic')}
+                  />
+                  Semantic
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#5f6368', cursor: 'pointer' }}>
+                  <input
+                    type="radio"
+                    name="searchMode"
+                    value="keyword"
+                    checked={searchMode === 'keyword'}
+                    onChange={() => handleModeChange('keyword')}
+                  />
+                  Keyword
+                </label>
+              </div>
             </div>
           </form>
         </div>

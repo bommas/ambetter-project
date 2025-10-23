@@ -13,12 +13,13 @@ interface SearchRequest {
   page?: number
   limit?: number
   sortBy?: 'relevance' | 'planType' | 'county'
+  mode?: 'semantic' | 'keyword'
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: SearchRequest = await request.json()
-    const { query, filters = {}, page = 1, limit = 20, sortBy = 'relevance' } = body
+    const { query, filters = {}, page = 1, limit = 20, sortBy = 'relevance', mode = 'semantic' } = body
 
     if (!query || query.trim().length === 0) {
       return NextResponse.json(
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build the Elasticsearch query
-    const searchQuery = buildSearchQuery(query, filters, sortBy)
+    const searchQuery = buildSearchQuery(query, filters, sortBy, mode)
     
     // Construct the full Elasticsearch request body
     const esRequestBody = {
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildSearchQuery(query: string, filters: any, sortBy: string) {
+function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'semantic' | 'keyword' = 'semantic') {
   const mustClauses: any[] = []
   const shouldClauses: any[] = []
 
@@ -146,30 +147,32 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
     }
   )
 
-  // Semantic search using ELSER embeddings (boosted for contextual understanding)
-  shouldClauses.push(
-    {
-      semantic: {
-        field: 'extracted_text_semantic',
-        query,
-        boost: 2.0
+  // Semantic search using ELSER embeddings (only if semantic mode)
+  if (mode === 'semantic') {
+    shouldClauses.push(
+      {
+        semantic: {
+          field: 'extracted_text_semantic',
+          query,
+          boost: 2.0
+        }
+      },
+      {
+        semantic: {
+          field: 'body_semantic',
+          query,
+          boost: 1.5
+        }
+      },
+      {
+        semantic: {
+          field: 'pdf_semantic',
+          query,
+          boost: 1.5
+        }
       }
-    },
-    {
-      semantic: {
-        field: 'body_semantic',
-        query,
-        boost: 1.5
-      }
-    },
-    {
-      semantic: {
-        field: 'pdf_semantic',
-        query,
-        boost: 1.5
-      }
-    }
-  )
+    )
+  }
 
   // Apply filters
   if (filters.state) {
