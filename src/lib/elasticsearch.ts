@@ -1,8 +1,17 @@
 import { Client } from '@elastic/elasticsearch'
 
 // Read directly from environment variables for Vercel compatibility
-const ELASTIC_ENDPOINT = process.env.ELASTIC_ENDPOINT || 'https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud'
-const ELASTIC_API_KEY = process.env.ELASTIC_API_KEY || 'Z2t5cDdwa0JWVEtzRW5CbkhjbDc6c05ReVZ4NFZIQVdyYnppNlB3V1NxUQ=='
+// Trim whitespace and newlines that might be added by Vercel
+const ELASTIC_ENDPOINT = (process.env.ELASTIC_ENDPOINT || 'https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud').trim()
+const ELASTIC_API_KEY = (process.env.ELASTIC_API_KEY || 'Z2t5cDdwa0JWVEtzRW5CbkhjbDc6c05ReVZ4NFZIQVdyYnppNlB3V1NxUQ==').trim()
+
+// Debug logging for Vercel
+console.log('Elasticsearch config:', {
+  endpoint: ELASTIC_ENDPOINT,
+  hasApiKey: !!ELASTIC_API_KEY,
+  apiKeyLength: ELASTIC_API_KEY.length,
+  apiKeyPreview: ELASTIC_API_KEY.substring(0, 10) + '...'
+})
 
 const client = new Client({
   node: ELASTIC_ENDPOINT,
