@@ -86,9 +86,10 @@ export default function SearchResultsPage() {
 
   const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string, mode?: 'semantic' | 'keyword'}) => {
     setLoading(true)
-    // Only clear AI summary if the query text changed AND we're not trying to show it
-    if (searchQuery !== lastAISummaryQuery && !showAISummary) {
+    // Clear AI summary on new queries (user must click "Show AI Summary" button to generate)
+    if (searchQuery !== lastAISummaryQuery) {
       setAiSummary(null)
+      setShowAISummary(false) // Reset the flag on new queries
     }
     setResults([])
 
