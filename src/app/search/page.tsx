@@ -85,8 +85,8 @@ export default function SearchResultsPage() {
 
   const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string, mode?: 'semantic' | 'keyword'}) => {
     setLoading(true)
-    // Only clear AI summary if the query text changed
-    if (searchQuery !== lastAISummaryQuery) {
+    // Only clear AI summary if the query text changed AND we're not trying to show it
+    if (searchQuery !== lastAISummaryQuery && !showAISummary) {
       setAiSummary(null)
     }
     setResults([])
@@ -539,11 +539,31 @@ export default function SearchResultsPage() {
                   <h2 style={styles.searchResultsTitle}>
                     Search Results for: {initialQuery}
                   </h2>
-                  {!showAISummary && !aiSummary && (
+                  {!aiSummary && (
                     <button 
-                      onClick={() => {
+                      onClick={async () => {
                         setShowAISummary(true)
-                        performSearch(initialQuery)
+                        // Generate AI summary immediately
+                        if (!aiSummaryCache[initialQuery]) {
+                          setLoading(true)
+                          try {
+                            const aiResponse = await fetch('/api/ai-summary', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ query: initialQuery, results: results })
+                            })
+                            const aiData = await aiResponse.json()
+                            setAiSummary(aiData.summary)
+                            setLastAISummaryQuery(initialQuery)
+                            setAiSummaryCache(prev => ({ ...prev, [initialQuery]: aiData.summary }))
+                          } catch (error) {
+                            console.error('AI summary error:', error)
+                          } finally {
+                            setLoading(false)
+                          }
+                        } else {
+                          setAiSummary(aiSummaryCache[initialQuery])
+                        }
                       }}
                       style={{
                         height: '36px',
