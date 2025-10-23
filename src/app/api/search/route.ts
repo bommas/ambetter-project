@@ -118,10 +118,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Execute search
+    console.log('🔍 Executing search with size:', esRequestBody.size, 'limit:', limit)
     const response = await client.search({
       index: INDICES.HEALTH_PLANS,
       body: { ...esRequestBody, query: finalQuery }
     })
+    console.log('📊 Elasticsearch returned:', response.hits.hits.length, 'results out of', response.hits.total)
 
     // Format the results with extracted plan names
     let results = response.hits.hits.map((hit: any) => {
