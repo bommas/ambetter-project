@@ -193,7 +193,7 @@ export default function SearchResultsPage() {
             )}
 
             {/* State Filter - TOP OF LIST */}
-            {facets.states.length > 0 && (
+            {Array.isArray(facets.states) && facets.states.length > 0 && (
               <div style={styles.filterSection}>
                 <div style={styles.filterHeader}>
                   <h3 style={styles.filterTitle}>State</h3>
@@ -213,10 +213,10 @@ export default function SearchResultsPage() {
                       style={styles.radioInput}
                     />
                     <span style={styles.radioText}>All States</span>
-                    <span style={styles.countBadge}>{facets.states.reduce((sum, s) => sum + s.count, 0)}</span>
+                    <span style={styles.countBadge}>{(facets.states || []).reduce((sum, s) => sum + s.count, 0)}</span>
                   </label>
 
-                  {facets.states.map((state) => (
+                  {(facets.states || []).map((state) => (
                     <label key={state.value} style={styles.radioLabel}>
                       <input
                         type="radio"
@@ -238,7 +238,7 @@ export default function SearchResultsPage() {
             )}
 
             {/* Document Type Filter */}
-            {facets.documentTypes.length > 0 && (
+            {Array.isArray(facets.documentTypes) && facets.documentTypes.length > 0 && (
               <div style={styles.filterSection}>
                 <div style={styles.filterHeader}>
                   <h3 style={styles.filterTitle}>Document Type</h3>
@@ -258,10 +258,10 @@ export default function SearchResultsPage() {
                       style={styles.radioInput}
                     />
                     <span style={styles.radioText}>All Types</span>
-                    <span style={styles.countBadge}>{facets.documentTypes.reduce((sum, d) => sum + d.count, 0)}</span>
+                    <span style={styles.countBadge}>{(facets.documentTypes || []).reduce((sum, d) => sum + d.count, 0)}</span>
                   </label>
 
-                  {facets.documentTypes.map((docType) => (
+                  {(facets.documentTypes || []).map((docType) => (
                     <label key={docType.value} style={styles.radioLabel}>
                       <input
                         type="radio"
@@ -283,7 +283,7 @@ export default function SearchResultsPage() {
             )}
 
             {/* Plans Filter (Dynamic, Grouped by Tier) */}
-            {facets.plans && facets.plans.length > 0 && (
+            {Array.isArray(facets.plans) && facets.plans.length > 0 && (
               <div style={styles.filterSection}>
                 <div style={styles.filterHeader}>
                   <h3 style={styles.filterTitle}>Health Plans</h3>
@@ -303,13 +303,13 @@ export default function SearchResultsPage() {
                       style={styles.radioInput}
                     />
                     <span style={styles.radioText}>All Plans</span>
-                    <span style={styles.countBadge}>{facets.plans.reduce((sum, p) => sum + p.count, 0)}</span>
+                    <span style={styles.countBadge}>{(facets.plans || []).reduce((sum, p) => sum + p.count, 0)}</span>
                   </label>
 
                   {/* Group plans by tier with visual separators */}
                   {(() => {
                     let lastTier = ''
-                    return facets.plans.slice(0, 15).map((plan, index) => {
+                    return (facets.plans || []).slice(0, 15).map((plan, index) => {
                       const showTierHeader = plan.tier && plan.tier !== lastTier
                       lastTier = plan.tier || ''
                       
@@ -392,8 +392,8 @@ export default function SearchResultsPage() {
                 <p style={styles.resultCount}>
                   About {results.length} results
                   {selectedState && ` • State: ${selectedState}`}
-                  {selectedDocumentType && ` • ${facets.documentTypes.find(d => d.value === selectedDocumentType)?.label}`}
-                  {selectedPlanId && ` • ${facets.planIds.find(p => p.value === selectedPlanId)?.label}`}
+                  {selectedDocumentType && ` • ${(facets.documentTypes || []).find(d => d.value === selectedDocumentType)?.label}`}
+                  {selectedPlanId && ` • ${(facets.planIds || []).find(p => p.value === selectedPlanId)?.label}`}
                 </p>
               
               {results.map((result, index) => (
