@@ -119,7 +119,7 @@ export default function SearchResultsPage() {
         body: JSON.stringify({ 
           query: searchQuery, 
           page: 1, 
-          limit: 20, // Show 20 results like Google
+          limit: 30, // Show 30 results (increased from 20)
           filters: searchFilters,
           mode: filters?.mode || searchMode
         })
@@ -635,7 +635,7 @@ export default function SearchResultsPage() {
                   )}
                 </div>
                 <p style={styles.resultCount}>
-                  showing 1 - {Math.min(results.length, 20)} out of {total || results.length}
+                  showing 1 - {Math.min(results.length, 30)} out of {total || results.length}
                 </p>
               
               {results.map((result, index) => {
