@@ -1,286 +1,268 @@
 # Ambetter Health Plan Search Application
 
-A comprehensive full-stack application for searching and analyzing Ambetter health plans in Texas, featuring advanced search capabilities, plan boosting, and analytics dashboard.
+**A comprehensive multi-state health plan search application powered by Elasticsearch and AI**
 
-## 🏥 Project Overview
-
-This application provides a powerful search interface for Texas Ambetter health plans, enabling users to find the most suitable health insurance plans based on their specific needs. The system features hybrid search capabilities, AI-powered summaries, and comprehensive analytics.
-
-### Key Features
-
-- 🔍 **Hybrid Search**: Combines vector similarity with keyword matching
-- 🤖 **AI-Powered Summaries**: Generative summaries of top search results
-- 📊 **React Analytics Dashboard**: Real-time insights and click stream analytics
-- ⚡ **Plan Boosting**: Dynamic plan ranking and A/B testing
-- 📱 **Responsive Design**: Mobile-first approach matching Ambetter's design
-- 🎯 **Smart Filtering**: Filter by county, tobacco use, plan type, and more
-
-## 🏗️ System Architecture
-
-### High-Level Architecture
-```mermaid
-graph TB
-    subgraph "Next.js Application"
-        A[Search Interface<br/>React Components]
-        B[Analytics Dashboard<br/>Admin & Insights]
-        C[API Routes<br/>Search, Analytics, Management]
-    end
-    
-    subgraph "Data Layer"
-        G[Elasticsearch<br/>Unified Data Store<br/>Search + Analytics + Click Stream]
-        H[RabbitMQ<br/>Message Queue]
-    end
-    
-    subgraph "External Services"
-        J[Ambetter Website<br/>PDF Source]
-        K[AI Services<br/>OpenAI/Claude]
-    end
-    
-    A --> C
-    B --> C
-    C --> G
-    C --> H
-```
-
-## 📋 Project Requirements
-
-Detailed project requirements and architecture diagrams are available in [PROJECT_REQUIREMENTS.md](./PROJECT_REQUIREMENTS.md).
-
-## 📏 Coding Standards
-
-Comprehensive coding rules, best practices, and architectural principles are documented in [CODING_STANDARDS.md](./CODING_STANDARDS.md). These standards were established during this project and should be applied to all future coding projects for consistency and quality.
-
-## 🎉 Phase 1: COMPLETED ✅
-
-### Phase 1 Achievements
-- **✅ Data Indexing Pipeline**: Complete PDF extraction and indexing system
-- **✅ Enhanced Metadata System**: Rich plan classification and document categorization  
-- **✅ Centralized Configuration**: Unified configuration management across all components
-- **✅ Elasticsearch Integration**: Full integration with Elastic Cloud Serverless
-- **✅ Document Processing**: 138+ PDFs successfully processed and indexed
-- **✅ Comprehensive Documentation**: Complete process and architecture documentation
-
-## 🚀 Phase 2: READY TO BEGIN
-
-### Phase 2 Objectives
-- **🔍 Search Interface**: Next.js application with advanced search capabilities
-- **🤖 AI Integration**: Elasticsearch Serverless built-in AI (ELSER model)
-- **📊 Analytics Dashboard**: Click stream analytics and plan performance metrics
-- **🎨 UI/UX**: Responsive design matching Ambetter's brand
-- **⚡ Performance**: Sub-2-second search response times
-
-### Phase 2 Features
-- **Hybrid Search**: Vector + lexical search with Elasticsearch
-- **Smart Filters**: County, plan type, document type filtering
-- **AI Summaries**: ELSER-powered semantic search and content analysis
-- **Real-time Analytics**: Search term tracking and click analytics
-- **Plan Boosting**: Admin interface for plan ranking management
-
-### Data Successfully Indexed
-- **Total Documents**: 160 documents in Elasticsearch
-- **PDFs Processed**: 138 health plan PDFs
-- **Plan Types**: TX014, TX016, TX017
-- **Counties Covered**: 2941 (primary county code identified)
-- **Document Types**: summary_of_benefits, evidence_of_coverage, out_of_coverage, brochure, policy, disclosure, sbc
-- **Success Rate**: 100% (0 failures)
-
-### Key Features Implemented
-- **Dynamic PDF Discovery**: Puppeteer-based web scraping with pagination handling
-- **Robust Text Extraction**: pdf-parse library for high-quality text extraction
-- **Comprehensive Metadata**: Plan classification, county mapping, document categorization
-- **Centralized Configuration**: Single config file for all URLs and API keys
-- **Temp File Management**: Project-contained temporary file handling
-- **Error Handling**: Automatic retry logic with 100% success rate
-- **Enhanced Mapping**: Rich Elasticsearch schema with new metadata fields
-
-### Enhanced Metadata System
-- **Plan Classification**: TX014, TX016, TX017 plan types
-- **County Mapping**: 0019, 0064, 0100, 0102, 0052, 0020, 0021, 0022, 0023
-- **Document Types**: Brochures, EOC, OOC, SBC documents
-- **Plan Variants**: 00, 01, 02, 03, 04, 05, 06 variants
-- **Rich Metadata**: Complete plan details and source URLs
-
-### Documentation
-- [INDEXING_PROCESS.md](./INDEXING_PROCESS.md): Complete PDF indexing workflow
-- [METADATA_ENHANCEMENTS.md](./METADATA_ENHANCEMENTS.md): Enhanced metadata extraction details
-- [PROJECT_REQUIREMENTS.md](./PROJECT_REQUIREMENTS.md): Updated with Phase 1 completion status
-- [PHASE2_REQUIREMENTS.md](./PHASE2_REQUIREMENTS.md): Phase 2 search interface development requirements
-- [CODING_STANDARDS.md](./CODING_STANDARDS.md): Comprehensive coding rules and best practices
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- **Node.js 18+** (for Next.js)
-- **Docker & Docker Compose**
-- **Elasticsearch 8.x** or **OpenSearch 2.x**
-- **RabbitMQ 3.8+**
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/ambetter-project.git
-   cd ambetter-project
-   ```
-
-2. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
-   ```
-
-3. **Start services with Docker Compose**
-   ```bash
-   docker-compose up -d
-   ```
-
-4. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-5. **Run the application**
-   ```bash
-   # Start Next.js development server
-   npm run dev
-   ```
-
-## 🛠️ Technology Stack
-
-### Full-Stack
-- **Next.js 14** with **TypeScript**
-- **Tailwind CSS** for styling and responsive design
-- **API Routes** for backend functionality
-- **Framer Motion** for smooth animations
-- **Chart.js** for analytics visualizations
-
-### Data & Services
-- **Elasticsearch/OpenSearch** for unified data store (search, analytics, click stream, caching)
-- **RabbitMQ** for message queuing
-- **JWT** for authentication
-
-### AI/ML
-- **OpenAI API** or **Anthropic Claude** for summaries
-- **Elasticsearch Vector Search** for semantic search
-- **Custom embeddings** for health plan documents
-
-### Infrastructure
-- **Docker** for containerization
-- **Nginx** for reverse proxy
-- **PM2** for process management
-
-## 📁 Project Structure
-
-```
-ambetter-project/
-├── docs/                          # Documentation
-│   ├── PROJECT_REQUIREMENTS.md    # Detailed requirements
-│   └── API_DOCUMENTATION.md       # API documentation
-├── src/                           # Next.js application
-│   ├── app/                       # App router pages
-│   ├── components/                # React components
-│   ├── lib/                       # Utility functions
-│   └── api/                       # API routes
-├── crawler/                       # PDF crawling service
-│   ├── src/
-│   │   ├── crawlers/              # Web crawlers
-│   │   ├── processors/            # Data processors
-│   │   └── indexers/              # Elasticsearch indexers
-├── analytics/                     # Analytics service
-│   ├── src/
-│   │   ├── processors/            # Click stream processors
-│   │   ├── dashboards/            # React analytics dashboards
-│   │   └── exporters/             # Data exporters
-├── docker-compose.yml             # Docker services
-├── .env.example                   # Environment variables template
-└── README.md                      # This file
-```
-
-## 🔧 Development Phases
-
-### Phase 1: Data Foundation (Weeks 1-2)
-- [ ] Set up Elasticsearch cluster
-- [ ] Configure PDF crawler for Ambetter website
-- [ ] Implement document processing pipeline
-- [ ] Create custom mapping and indexing
-- [ ] Test data extraction and indexing
-
-### Phase 2: Next.js Application Development (Weeks 3-4)
-- [ ] Set up Next.js 14 application with TypeScript
-- [ ] Create pages for search, results, and analytics
-- [ ] Implement API routes for search and analytics
-- [ ] Build search interface matching Ambetter design
-- [ ] Add filtering and faceted search
-
-### Phase 3: API Routes & Features (Weeks 5-6)
-- [ ] Build API routes for search, analytics, and plan management
-- [ ] Implement plan boosting system
-- [ ] Add click tracking functionality
-- [ ] Set up authentication and security
-- [ ] Integrate AI services for summaries
-
-### Phase 4: Analytics & Dashboard (Weeks 7-8)
-- [ ] Set up RabbitMQ for click stream
-- [ ] Implement analytics data pipeline
-- [ ] Build Next.js analytics dashboard
-- [ ] Add real-time metrics and visualizations
-- [ ] Implement A/B testing framework
-
-## 📊 API Endpoints
-
-### Search API
-- `GET /api/search` - Main search endpoint with hybrid search
-- `GET /api/plans` - Plan management and retrieval
-- `POST /api/boost` - Plan boosting functionality
-
-### Analytics API
-- `GET /api/analytics` - Search analytics data
-- `POST /api/click` - Click tracking endpoint
-- `GET /api/metrics` - Performance metrics
-
-## 🧪 Testing
-
-```bash
-# Run Next.js tests
-npm test
-
-# Run integration tests
-npm run test:integration
-```
-
-## 📈 Performance Metrics
-
-- Search response time < 200ms
-- 95%+ search accuracy
-- Real-time React analytics dashboard
-- Mobile-responsive design
-- Scalable architecture for future growth
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support
-
-For support and questions, please open an issue in the GitHub repository or contact the development team.
-
-## 🔮 Future Enhancements
-
-- Machine learning for personalized recommendations
-- Advanced analytics with predictive insights
-- Multi-state expansion beyond Texas
-- Integration with external health plan APIs
-- Advanced reporting and export capabilities
+[![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Elasticsearch](https://img.shields.io/badge/Elasticsearch-Serverless-orange)](https://www.elastic.co/)
+[![Deployed on Vercel](https://img.shields.io/badge/Vercel-Deployed-black)](https://vercel.com)
 
 ---
 
-**Built with ❤️ for better healthcare access in Texas**
+## 🚀 Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd ambetter-project
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local with your credentials
+
+# Run development server
+npm run dev
+```
+
+### Access the Application
+
+- **Homepage**: [http://localhost:3000](http://localhost:3000)
+- **Search**: [http://localhost:3000/search?q=health+plans](http://localhost:3000/search?q=health+plans)
+
+---
+
+## 📖 Complete Documentation
+
+**For complete project documentation, requirements, architecture, and guides, see:**
+
+### **[📘 PROJECT_MASTER.md](./PROJECT_MASTER.md)**
+
+This master document contains:
+- ✅ Complete project overview and status
+- ✅ System architecture diagrams
+- ✅ Phase 1 & Phase 2 details
+- ✅ Multi-state setup guide
+- ✅ API documentation
+- ✅ Deployment instructions
+- ✅ Troubleshooting guide
+- ✅ Development workflow
+
+---
+
+## 🎯 What is This?
+
+A full-stack Next.js application that allows users to:
+- 🔍 Search health plans across **Texas** and **Florida**
+- 🤖 Get **AI-powered summaries** of plan options
+- 📊 Filter by state, document type, and plan ID
+- 📄 Access PDF brochures directly
+- 📈 Track search analytics (coming soon)
+
+---
+
+## 🏗️ Project Structure
+
+```
+ambetter-project/
+├── src/
+│   ├── app/                  # Next.js 14 App Router
+│   │   ├── page.tsx          # Homepage (Google-like search)
+│   │   ├── search/           # Search results page
+│   │   └── api/              # API routes
+│   ├── components/           # React components (future)
+│   └── lib/                  # Utilities and services
+│       └── elasticsearch.ts  # Elasticsearch client
+├── scripts/
+│   ├── multi-state-processor.js  # PDF extraction & indexing
+│   └── qa-test.sh            # QA validation scripts
+├── config/
+│   └── app-config.js         # Centralized configuration
+├── run_multi_state_pipeline.py  # Pipeline orchestrator
+├── PROJECT_MASTER.md         # 📘 Complete documentation
+└── package.json
+```
+
+---
+
+## ⚡ Key Features
+
+### Currently Available ✅
+- **Multi-State Search**: Texas and Florida health plans
+- **Hybrid Search**: Keyword-based search with Elasticsearch
+- **AI Summaries**: OpenAI-powered plan summaries
+- **Faceted Filtering**: Filter by state, document type, plan
+- **PDF Access**: Direct links to plan brochures
+- **Responsive Design**: Works on all devices
+- **Ambetter Branding**: Matches official design guidelines
+
+### Coming Soon 🚧
+- **Semantic Search**: ELSER-powered contextual search
+- **Analytics Dashboard**: Real-time search metrics
+- **Click Tracking**: User behavior analytics
+- **Plan Boosting**: Admin-controlled plan ranking
+- **More States**: California, Georgia, and more
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Backend**: Next.js API Routes, Node.js
+- **Search**: Elasticsearch Serverless
+- **AI**: OpenAI GPT-4o-mini
+- **Data Processing**: Puppeteer, pdftotext
+- **Deployment**: Vercel
+- **Analytics**: RabbitMQ (optional)
+
+---
+
+## 📊 Data Pipeline
+
+### Running the Pipeline
+
+```bash
+# Full multi-state pipeline
+python3 run_multi_state_pipeline.py
+
+# Direct execution
+node scripts/multi-state-processor.js
+
+# Background execution
+nohup python3 run_multi_state_pipeline.py > /tmp/pipeline-output.log 2>&1 &
+```
+
+### What It Does
+
+1. **Crawls** Ambetter websites for Texas and Florida
+2. **Extracts** PDF brochures and web content
+3. **Processes** text from PDFs using pdftotext
+4. **Enriches** documents with metadata
+5. **Indexes** everything into Elasticsearch
+6. **Reports** summary and statistics
+
+### Current Data
+
+- **Total Documents**: 544
+  - Texas: 302 documents
+  - Florida: 242 documents
+- **Document Types**: Summary of Benefits, Evidence of Coverage, Brochures, etc.
+- **Plan Types**: EPO, HMO, Bronze, Silver, Gold
+
+---
+
+## 🚀 Deployment
+
+### Vercel (Production)
+
+```bash
+# Deploy to Vercel
+vercel --prod
+
+# Set environment variables
+vercel env add ELASTIC_ENDPOINT
+vercel env add ELASTIC_API_KEY
+vercel env add OPENAI_API_KEY
+```
+
+**See [PROJECT_MASTER.md](./PROJECT_MASTER.md#deployment-guide) for detailed deployment instructions.**
+
+---
+
+## 🔑 Environment Variables
+
+```env
+# Elasticsearch (REQUIRED)
+ELASTIC_ENDPOINT=https://your-deployment.es.us-east-1.aws.elastic.cloud
+ELASTIC_API_KEY=your_api_key_here
+
+# OpenAI (OPTIONAL - falls back to mock)
+OPENAI_API_KEY=sk-proj-your_key_here
+
+# RabbitMQ (OPTIONAL - for analytics)
+RABBITMQ_URL=amqp://your-rabbitmq-url:5672
+```
+
+---
+
+## 📚 Additional Documentation
+
+- **[PROJECT_MASTER.md](./PROJECT_MASTER.md)** - Complete documentation *(START HERE)*
+- **[CODING_STANDARDS.md](./CODING_STANDARDS.md)** - Coding rules and best practices
+- **[MULTI_STATE_SETUP.md](./MULTI_STATE_SETUP.md)** - Multi-state configuration guide
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Vercel deployment guide
+
+---
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Issue**: pdftotext not found
+```bash
+# macOS
+brew install poppler
+
+# Linux
+sudo apt-get install poppler-utils
+```
+
+**Issue**: State inconsistency (TX vs Texas)
+- See [PROJECT_MASTER.md - Troubleshooting](./PROJECT_MASTER.md#troubleshooting) for solutions
+
+**Issue**: No results on Vercel
+- Check environment variables in Vercel dashboard
+- Disable Deployment Protection
+- Verify Elasticsearch credentials
+
+**For more troubleshooting, see [PROJECT_MASTER.md](./PROJECT_MASTER.md#troubleshooting)**
+
+---
+
+## 🎯 Current Status
+
+### Phase 1: Data Foundation ✅ **COMPLETED**
+- Multi-state data indexing (TX, FL)
+- PDF processing pipeline
+- Metadata extraction
+- Elasticsearch integration
+
+### Phase 2: Search Interface 🚧 **IN PROGRESS**
+- Google-like search interface ✅
+- AI-powered summaries ✅
+- Faceted filtering ✅
+- State consistency fixes 🔄
+- ELSER semantic search ⏳
+- Analytics dashboard ⏳
+
+---
+
+## 📞 Support
+
+For issues, questions, or feature requests:
+1. Check the [Troubleshooting Guide](./PROJECT_MASTER.md#troubleshooting)
+2. Review the [Complete Documentation](./PROJECT_MASTER.md)
+3. Consult individual documentation files
+
+---
+
+## 🤝 Contributing
+
+This is a demo project. For production use:
+1. Review the [Coding Standards](./CODING_STANDARDS.md)
+2. Understand the [System Architecture](./PROJECT_MASTER.md#system-architecture)
+3. Follow the [Development Workflow](./PROJECT_MASTER.md#development-workflow)
+
+---
+
+## 📄 License
+
+Copyright © 2025. All rights reserved.
+
+---
+
+**For the complete documentation, see [PROJECT_MASTER.md](./PROJECT_MASTER.md)** 📘

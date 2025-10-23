@@ -1,13 +1,13 @@
 import { Client } from '@elastic/elasticsearch'
-import config from '../../config/app-config'
+
+// Read directly from environment variables for Vercel compatibility
+const ELASTIC_ENDPOINT = process.env.ELASTIC_ENDPOINT || 'https://centene-serverless-demo-a038f2.es.us-east-1.aws.elastic.cloud'
+const ELASTIC_API_KEY = process.env.ELASTIC_API_KEY || 'Z2t5cDdwa0JWVEtzRW5CbkhjbDc6c05ReVZ4NFZIQVdyYnppNlB3V1NxUQ=='
 
 const client = new Client({
-  node: config.elasticsearch.endpoint,
-  auth: config.elasticsearch.username && config.elasticsearch.password ? {
-    username: config.elasticsearch.username,
-    password: config.elasticsearch.password,
-  } : {
-    apiKey: config.elasticsearch.apiKey,
+  node: ELASTIC_ENDPOINT,
+  auth: {
+    apiKey: ELASTIC_API_KEY
   },
   tls: {
     rejectUnauthorized: false
@@ -18,11 +18,11 @@ export default client
 
 // Elasticsearch indices configuration
 export const INDICES = {
-  HEALTH_PLANS: config.elasticsearch.indices.healthPlans,
-  SEARCH_EVENTS: config.elasticsearch.indices.searchEvents,
-  CLICK_EVENTS: config.elasticsearch.indices.clickEvents,
-  ANALYTICS_METRICS: config.elasticsearch.indices.analyticsMetrics,
-  USER_SESSIONS: config.elasticsearch.indices.userSessions
+  HEALTH_PLANS: 'health-plans',
+  SEARCH_EVENTS: 'search-events',
+  CLICK_EVENTS: 'click-events',
+  ANALYTICS_METRICS: 'analytics-metrics',
+  USER_SESSIONS: 'user-sessions'
 } as const
 
 // Health plan document mapping

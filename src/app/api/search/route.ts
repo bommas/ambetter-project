@@ -30,34 +30,53 @@ export async function POST(request: NextRequest) {
     // Build the Elasticsearch query
     const searchQuery = buildSearchQuery(query, filters, sortBy)
     
+    // Construct the full Elasticsearch request body
+    const esRequestBody = {
+      ...searchQuery,
+      from: (page - 1) * limit,
+      size: limit,
+      _source: [
+        'title',
+        'plan_name',
+        'plan_type',
+        'plan_id',
+        'county_code',
+        'extracted_text',
+        'url',
+        'document_url',
+        'pdf.filename',
+        'metadata'
+      ]
+    }
+    
+    // Log the Elasticsearch query for debugging
+    console.log('🔍 Elasticsearch Query:', JSON.stringify({
+      index: INDICES.HEALTH_PLANS,
+      query: esRequestBody.query,
+      from: esRequestBody.from,
+      size: esRequestBody.size
+    }, null, 2))
+    
     // Execute the search
     const response = await client.search({
       index: INDICES.HEALTH_PLANS,
-      body: {
-        ...searchQuery,
-        from: (page - 1) * limit,
-        size: limit,
-        _source: [
-          'title',
-          'plan_name',
-          'plan_type',
-          'plan_id',
-          'county_code',
-          'extracted_text',
-          'url',
-          'document_url',
-          'pdf.filename',
-          'metadata'
-        ]
-      }
+      body: esRequestBody
     })
 
-    // Format the results
-    const results = response.hits.hits.map((hit: any) => ({
-      id: hit._id,
-      ...hit._source,
-      _score: hit._score
-    }))
+    // Format the results with extracted plan names
+    const results = response.hits.hits.map((hit: any) => {
+      const source = hit._source
+      const extractedPlanName = extractPlanNameFromBody(source.extracted_text || source.body || '')
+      
+      return {
+        id: hit._id,
+        ...source,
+        // Override plan_name with extracted name if found
+        plan_name: extractedPlanName || source.plan_name || source.title || source.plan_id,
+        original_plan_name: source.plan_name, // Keep original for reference
+        _score: hit._score
+      }
+    })
 
     // Track search analytics
     await trackSearchEvent(query, filters, results.length)
@@ -86,13 +105,15 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
 
   // Main query - hybrid search combining lexical and semantic
   shouldClauses.push(
-    // Lexical search on multiple fields
+    // Lexical search on multiple fields (including state)
     {
       multi_match: {
         query,
         fields: [
           'title^2',
           'plan_name^2',
+          'state^3',
+          'county^2',
           'extracted_text',
           'body',
           'pdf.content'
@@ -108,20 +129,63 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
         fields: [
           'title^3',
           'plan_name^3',
+          'state^4',
           'extracted_text^2'
         ],
         type: 'phrase'
       }
+    },
+    // Wildcard search for Texas-specific queries
+    {
+      query_string: {
+        query: `*${query.toLowerCase().replace(/[^\w\s]/g, '')}*`,
+        fields: ['state', 'county', 'plan_name', 'extracted_text'],
+        default_operator: 'OR'
+      }
     }
   )
 
-  // Note: ELSER semantic search removed for now - using lexical search only
-  // TODO: Re-enable when ELSER model is available in Elasticsearch Serverless
+  // Semantic search using ELSER embeddings (boosted for contextual understanding)
+  shouldClauses.push(
+    {
+      semantic: {
+        field: 'extracted_text_semantic',
+        query,
+        boost: 2.0
+      }
+    },
+    {
+      semantic: {
+        field: 'body_semantic',
+        query,
+        boost: 1.5
+      }
+    },
+    {
+      semantic: {
+        field: 'pdf_semantic',
+        query,
+        boost: 1.5
+      }
+    }
+  )
 
   // Apply filters
+  if (filters.state) {
+    mustClauses.push({
+      term: { 'state.keyword': filters.state }
+    })
+  }
+
   if (filters.county) {
     mustClauses.push({
       term: { 'county_code.keyword': filters.county }
+    })
+  }
+
+  if (filters.plan) {
+    mustClauses.push({
+      term: { 'plan_name.keyword': filters.plan }
     })
   }
 
@@ -168,6 +232,57 @@ function buildSearchQuery(query: string, filters: any, sortBy: string) {
   }
 
   return searchQuery
+}
+
+/**
+ * Extract the human-readable plan name from the document body text
+ * Looks for patterns like "Ambetter + Adult Vision", "Ambetter Essential Care", etc.
+ */
+function extractPlanNameFromBody(bodyText: string): string | null {
+  if (!bodyText) return null
+
+  // Pattern 1: Look for "MAJOR MEDICAL EXPENSE POLICY" followed by plan name
+  const policyPattern = /MAJOR MEDICAL EXPENSE POLICY\s+([^\n]+)/i
+  const policyMatch = bodyText.match(policyPattern)
+  if (policyMatch && policyMatch[1]) {
+    const planName = policyMatch[1].trim()
+    // Clean up the plan name (remove extra whitespace, URLs, etc.)
+    const cleanName = planName
+      .replace(/Ambetter\.SuperiorHealthPlan\.com/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (cleanName && cleanName.length > 3 && cleanName.length < 100) {
+      return cleanName
+    }
+  }
+
+  // Pattern 2: Look for "Ambetter" followed by plan type (e.g., "Ambetter + Adult Vision")
+  const ambetterPattern = /Ambetter\s*\+?\s*([A-Z][A-Za-z\s]+(?:Care|Vision|Health|Plan|Plus|Select|Choice|Value|Essential|Balanced|Secure))/
+  const ambetterMatch = bodyText.match(ambetterPattern)
+  if (ambetterMatch && ambetterMatch[0]) {
+    const planName = ambetterMatch[0].trim()
+    if (planName.length > 3 && planName.length < 100) {
+      return planName
+    }
+  }
+
+  // Pattern 3: Look for "FOR AMBETTER FROM" followed by plan name
+  const forAmbetterPattern = /FOR AMBETTER FROM\s+([A-Z][A-Za-z\s]+)/i
+  const forAmbetterMatch = bodyText.match(forAmbetterPattern)
+  if (forAmbetterMatch && forAmbetterMatch[1]) {
+    const planName = `Ambetter from ${forAmbetterMatch[1].trim()}`
+    if (planName.length < 100) {
+      return planName
+    }
+  }
+
+  // Pattern 4: Look for "Ambetter from Superior HealthPlan"
+  if (bodyText.includes('Ambetter from Superior HealthPlan') || 
+      bodyText.includes('AMBETTER FROM SUPERIOR HEALTHPLAN')) {
+    return 'Ambetter from Superior HealthPlan'
+  }
+
+  return null
 }
 
 async function trackSearchEvent(query: string, filters: any, resultCount: number) {

@@ -20,7 +20,28 @@ module.exports = {
   // Ambetter Website URLs
   ambetter: {
     baseUrl: 'https://www.ambetterhealth.com',
-    brochuresUrl: 'https://www.ambetterhealth.com/en/tx/2025-brochures-epo/#',
+    
+    // State-specific URLs
+    states: {
+      texas: {
+        brochuresUrl: 'https://www.ambetterhealth.com/en/tx/2025-brochures-epo/',
+        healthPlansUrl: 'https://www.ambetterhealth.com/en/tx/health-plans/',
+        state: 'TX',
+        extractPDFs: true, // Extract PDFs from brochures page
+        crawlContent: true // Also crawl general health plans info
+      },
+      florida: {
+        brochuresUrl: 'https://www.ambetterhealth.com/en/fl/2025-brochures-epo/',
+        brochuresUrlHMO: 'https://www.ambetterhealth.com/en/fl/2025-brochures-hmo/',
+        healthPlansUrl: 'https://www.ambetterhealth.com/en/fl/health-plans/',
+        state: 'FL',
+        extractPDFs: true, // Extract PDFs from brochures pages
+        crawlContent: true // Also crawl general health plans info
+      }
+    },
+    
+    // Legacy URL (kept for backwards compatibility)
+    brochuresUrl: 'https://www.ambetterhealth.com/en/tx/2025-brochures-epo/',
     apiBaseUrl: 'https://api.centene.com'
   },
 

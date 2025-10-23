@@ -149,3 +149,4 @@ pdf-cache/
 # AI model cache
 model-cache/
 embeddings-cache/
+.vercel

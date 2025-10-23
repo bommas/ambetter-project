@@ -15,311 +15,697 @@ interface SearchResult {
   _score: number
 }
 
-export default function SearchPage() {
+interface Facet {
+  value: string
+  label: string
+  count: number
+  tier?: string
+}
+
+interface Facets {
+  states: Facet[]
+  counties: Facet[]
+  documentTypes: Facet[]
+  plans: Facet[]
+  planIds: Facet[]
+  planTypes: Facet[]
+}
+
+export default function SearchResultsPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const initialQuery = searchParams?.get('q') || ''
 
-  const [query, setQuery] = useState(searchParams?.get('q') || '')
+  const [query, setQuery] = useState(initialQuery)
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
-  const [total, setTotal] = useState(0)
-  const [selectedPlanTypes, setSelectedPlanTypes] = useState<string[]>([])
-  const [selectedCounties, setSelectedCounties] = useState<string[]>([])
+  const [aiSummary, setAiSummary] = useState<string | null>(null)
+  const [facets, setFacets] = useState<Facets>({ states: [], counties: [], documentTypes: [], plans: [], planIds: [], planTypes: [] })
+  const [selectedState, setSelectedState] = useState<string>('')
+  const [selectedCounty, setSelectedCounty] = useState<string>('')
+  const [selectedDocumentType, setSelectedDocumentType] = useState<string>('')
+  const [selectedPlan, setSelectedPlan] = useState<string>('')
+  const [selectedPlanId, setSelectedPlanId] = useState<string>('')
 
   useEffect(() => {
-    if (searchParams?.get('q')) {
-      performSearch()
+    if (initialQuery) {
+      performSearch(initialQuery)
+      loadFacets(initialQuery)
     }
-  }, [])
+  }, [initialQuery])
 
-  const performSearch = async () => {
-    if (!query.trim()) return
-
-    setLoading(true)
+  const loadFacets = async (searchQuery: string) => {
     try {
-      const response = await fetch('/api/search', {
+      const response = await fetch(`/api/facets?query=${encodeURIComponent(searchQuery)}`)
+      const data = await response.json()
+      setFacets(data)
+    } catch (error) {
+      console.error('Failed to load facets:', error)
+    }
+  }
+
+  const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string}) => {
+    setLoading(true)
+    setAiSummary(null)
+    setResults([])
+
+    try {
+      // Build filters object
+      const searchFilters: any = {}
+      if (filters?.state) {
+        searchFilters.state = filters.state
+      }
+      if (filters?.county) {
+        searchFilters.county = filters.county
+      }
+      if (filters?.plan) {
+        searchFilters.plan = filters.plan
+      }
+      if (filters?.documentType) {
+        searchFilters.documentType = [filters.documentType]
+      }
+      if (filters?.planId) {
+        searchFilters.planType = [filters.planId]
+      }
+
+      // Elasticsearch search
+      const esResponse = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          query: query || '*',
-          page: 1,
-          limit: 20
+        body: JSON.stringify({ 
+          query: searchQuery, 
+          page: 1, 
+          limit: 10,
+          filters: searchFilters 
         })
       })
+      const esData = await esResponse.json()
+      const searchResults = esData.results || []
+      setResults(searchResults)
 
-      const data = await response.json()
-      setResults(data.results || [])
-      setTotal(data.total || 0)
+      // Generate AI Summary using OpenAI
+      const aiResponse = await fetch('/api/ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: searchQuery, results: searchResults })
+      })
+      const aiData = await aiResponse.json()
+      setAiSummary(aiData.summary)
+
     } catch (error) {
       console.error('Search error:', error)
+      setAiSummary("An error occurred while searching. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    performSearch()
+  const handleFilterChange = () => {
+    performSearch(initialQuery, {
+      state: selectedState,
+      county: selectedCounty,
+      plan: selectedPlan,
+      documentType: selectedDocumentType,
+      planId: selectedPlanId
+    })
   }
 
-  const toggleFilter = (type: 'planType' | 'county', value: string) => {
-    if (type === 'planType') {
-      setSelectedPlanTypes(prev =>
-        prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-      )
-    } else {
-      setSelectedCounties(prev =>
-        prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
-      )
+  const clearFilters = () => {
+    setSelectedState('')
+    setSelectedCounty('')
+    setSelectedDocumentType('')
+    setSelectedPlan('')
+    setSelectedPlanId('')
+    performSearch(initialQuery, {})
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (query.trim()) {
+      router.push(`/search?q=${encodeURIComponent(query)}`)
     }
   }
 
-  const handleRelatedSearch = (topic: string) => {
-    setQuery(topic)
-    setTimeout(() => {
-      performSearch()
-    }, 100)
-  }
-
-  const planTypes = ['TX014', 'TX016', 'TX017']
-  const counties = ['001', '113', '121', '141', '201', '339', '375', '439', '453']
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.push('/')} className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                <span className="text-white font-bold text-lg">A</span>
-              </div>
-              <span className="text-lg font-semibold text-gray-900">Ambetter Health Search</span>
-            </button>
-
-            <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
-              <div className="relative">
-                <input
-                  type="text"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search health plans..."
-                  className="w-full px-4 py-2 pr-20 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition"
-                >
-                  Search
-                </button>
-              </div>
-            </form>
+    <div style={styles.container}>
+      {/* Top Header Ribbon */}
+      <div style={styles.headerRibbon}>
+        <div style={styles.ribbonContent}>
+          <div style={styles.logoContainer} onClick={() => router.push('/')}>
+            <svg style={styles.logoIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <span style={styles.logoText}>Ambetter Health</span>
           </div>
+        </div>
+      </div>
+
+      {/* Header with Search */}
+      <header style={styles.header}>
+        <div style={styles.headerContent}>
+          <form onSubmit={handleSearchSubmit} style={styles.headerSearchForm}>
+            <div style={styles.headerSearchBox}>
+              <svg style={styles.searchIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                style={styles.headerSearchInput}
+                placeholder="Search health plans..."
+              />
+            </div>
+          </form>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
-              <p className="text-gray-600">Searching...</p>
-            </div>
-          </div>
-        ) : results.length > 0 ? (
-          <div className="flex gap-6">
-            {/* Main Content - Left Side */}
-            <div className="flex-1">
-              {/* Top Panel - AI Summary */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6 mb-6">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">AI Summary</h3>
-                    <div className="text-gray-700 space-y-2">
-                      <p>Based on your search for <span className="font-semibold text-blue-700">&quot;{query}&quot;</span>, I found {total} relevant health plan documents.</p>
-                      <p className="text-sm">These include plan brochures, evidence of coverage (EOC), and summary of benefits covering various plan types across Texas counties. The documents contain detailed information about coverage, benefits, costs, and provider networks.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      {/* Main Content with Sidebar */}
+      <main style={styles.main}>
+        <div style={styles.contentWithSidebar}>
+          {/* Left Sidebar - Filters */}
+          <aside style={styles.sidebar}>
+            {/* Clear All Filters Button */}
+            {(selectedState || selectedCounty || selectedDocumentType || selectedPlanId) && (
+              <button onClick={clearFilters} style={styles.clearAllButton}>
+                Clear All Filters
+              </button>
+            )}
 
-              {/* Bottom Panel - Search Results */}
-              <main className="flex-1">
-                {/* Results Header */}
-                <div className="mb-6">
-                  <p className="text-gray-600">
-                    Found <span className="font-semibold text-gray-900">{total}</span> results for &quot;{query}&quot;
-                  </p>
+            {/* State Filter - TOP OF LIST */}
+            {facets.states.length > 0 && (
+              <div style={styles.filterSection}>
+                <div style={styles.filterHeader}>
+                  <h3 style={styles.filterTitle}>State</h3>
                 </div>
+                
+                <div style={styles.filterOptions}>
+                  <label style={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="state"
+                      value=""
+                      checked={selectedState === ''}
+                      onChange={(e) => {
+                        setSelectedState('')
+                        handleFilterChange()
+                      }}
+                      style={styles.radioInput}
+                    />
+                    <span style={styles.radioText}>All States</span>
+                    <span style={styles.countBadge}>{facets.states.reduce((sum, s) => sum + s.count, 0)}</span>
+                  </label>
 
-                {/* Results List */}
-                <div className="space-y-4">
-                  {results.map((result) => (
-                    <div key={result.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <a
-                            href={result.document_url || result.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xl font-semibold text-blue-600 hover:text-blue-700 hover:underline mb-2 inline-block"
-                          >
-                            {result.plan_name || `${result.plan_id} Health Plan`}
-                          </a>
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              {result.plan_id}
-                            </span>
-                            <span className="text-sm text-gray-600">
-                              {result.plan_type?.replace(/_/g, ' ')}
-                            </span>
-                            {result.county_code && (
-                              <span className="text-sm text-gray-500">County: {result.county_code}</span>
-                            )}
-                          </div>
-                          <p className="text-gray-700 leading-relaxed line-clamp-3">
-                            {result.extracted_text?.substring(0, 300)}...
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0">
-                          <div className="text-sm text-gray-500">
-                            Score: {result._score?.toFixed(2)}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  {facets.states.map((state) => (
+                    <label key={state.value} style={styles.radioLabel}>
+                      <input
+                        type="radio"
+                        name="state"
+                        value={state.value}
+                        checked={selectedState === state.value}
+                        onChange={(e) => {
+                          setSelectedState(state.value)
+                          setTimeout(handleFilterChange, 0)
+                        }}
+                        style={styles.radioInput}
+                      />
+                      <span style={styles.radioText}>{state.label}</span>
+                      <span style={styles.countBadge}>{state.count}</span>
+                    </label>
                   ))}
                 </div>
-              </main>
-            </div>
+              </div>
+            )}
 
-            {/* Right Panel - Recommendations */}
-            <aside className="w-80 flex-shrink-0">
-              <div className="bg-white border border-gray-200 rounded-lg p-4 sticky top-20">
-                <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                  </svg>
-                  Recommendations
-                </h3>
-
-                {/* Filters */}
-                <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Refine Search</h4>
-
-                  {/* Plan Type Filter */}
-                  <div className="mb-4">
-                    <p className="text-xs text-gray-600 mb-2">Plan Type</p>
-                    <div className="space-y-2">
-                      {planTypes.map((type) => (
-                        <label key={type} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedPlanTypes.includes(type)}
-                            onChange={() => toggleFilter('planType', type)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">{type}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* County Filter */}
-                  <div>
-                    <p className="text-xs text-gray-600 mb-2">County Code</p>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {counties.map((county) => (
-                        <label key={county} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={selectedCounties.includes(county)}
-                            onChange={() => toggleFilter('county', county)}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">County {county}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Clear Filters */}
-                  {(selectedPlanTypes.length > 0 || selectedCounties.length > 0) && (
-                    <button
-                      onClick={() => {
-                        setSelectedPlanTypes([])
-                        setSelectedCounties([])
+            {/* Document Type Filter */}
+            {facets.documentTypes.length > 0 && (
+              <div style={styles.filterSection}>
+                <div style={styles.filterHeader}>
+                  <h3 style={styles.filterTitle}>Document Type</h3>
+                </div>
+                
+                <div style={styles.filterOptions}>
+                  <label style={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="documentType"
+                      value=""
+                      checked={selectedDocumentType === ''}
+                      onChange={(e) => {
+                        setSelectedDocumentType('')
+                        handleFilterChange()
                       }}
-                      className="mt-3 w-full px-3 py-2 text-sm text-blue-600 border border-blue-600 rounded hover:bg-blue-50 transition"
-                    >
-                      Clear Filters
-                    </button>
-                  )}
-                </div>
+                      style={styles.radioInput}
+                    />
+                    <span style={styles.radioText}>All Types</span>
+                    <span style={styles.countBadge}>{facets.documentTypes.reduce((sum, d) => sum + d.count, 0)}</span>
+                  </label>
 
-                {/* Related Searches */}
-                <div className="border-t border-gray-200 pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Related Searches</h4>
-                  <div className="space-y-2">
-                    {[
-                      'Preventive care',
-                      'Emergency services',
-                      'Specialist copays',
-                      'Prescription drugs',
-                      'Mental health'
-                    ].map((topic) => (
-                      <button
-                        key={topic}
-                        onClick={() => handleRelatedSearch(topic)}
-                        className="w-full text-left px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded transition"
-                      >
-                        {topic}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Quick Stats */}
-                <div className="border-t border-gray-200 pt-4 mt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Search Stats</h4>
-                  <div className="space-y-2 text-sm text-gray-600">
-                    <div className="flex justify-between">
-                      <span>Results:</span>
-                      <span className="font-semibold text-gray-900">{total}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Plan Types:</span>
-                      <span className="font-semibold text-gray-900">{new Set(results.map(r => r.plan_id)).size}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Counties:</span>
-                      <span className="font-semibold text-gray-900">{new Set(results.map(r => r.county_code)).size}</span>
-                    </div>
-                  </div>
+                  {facets.documentTypes.map((docType) => (
+                    <label key={docType.value} style={styles.radioLabel}>
+                      <input
+                        type="radio"
+                        name="documentType"
+                        value={docType.value}
+                        checked={selectedDocumentType === docType.value}
+                        onChange={(e) => {
+                          setSelectedDocumentType(docType.value)
+                          setTimeout(handleFilterChange, 0)
+                        }}
+                        style={styles.radioInput}
+                      />
+                      <span style={styles.radioText}>{docType.label}</span>
+                      <span style={styles.countBadge}>{docType.count}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
-            </aside>
+            )}
+
+            {/* Plans Filter (Dynamic, Grouped by Tier) */}
+            {facets.plans && facets.plans.length > 0 && (
+              <div style={styles.filterSection}>
+                <div style={styles.filterHeader}>
+                  <h3 style={styles.filterTitle}>Health Plans</h3>
+                </div>
+                
+                <div style={styles.filterOptions}>
+                  <label style={styles.radioLabel}>
+                    <input
+                      type="radio"
+                      name="plan"
+                      value=""
+                      checked={selectedPlan === ''}
+                      onChange={(e) => {
+                        setSelectedPlan('')
+                        handleFilterChange()
+                      }}
+                      style={styles.radioInput}
+                    />
+                    <span style={styles.radioText}>All Plans</span>
+                    <span style={styles.countBadge}>{facets.plans.reduce((sum, p) => sum + p.count, 0)}</span>
+                  </label>
+
+                  {/* Group plans by tier with visual separators */}
+                  {(() => {
+                    let lastTier = ''
+                    return facets.plans.slice(0, 15).map((plan, index) => {
+                      const showTierHeader = plan.tier && plan.tier !== lastTier
+                      lastTier = plan.tier || ''
+                      
+                      return (
+                        <div key={plan.value}>
+                          {showTierHeader && (
+                            <div style={{
+                              ...styles.radioText,
+                              fontWeight: 'bold',
+                              color: '#C61C71',
+                              marginTop: index > 0 ? '12px' : '0',
+                              marginBottom: '4px',
+                              fontSize: '13px'
+                            }}>
+                              {plan.tier} Plans
+                            </div>
+                          )}
+                          <label style={styles.radioLabel}>
+                            <input
+                              type="radio"
+                              name="plan"
+                              value={plan.value}
+                              checked={selectedPlan === plan.value}
+                              onChange={(e) => {
+                                setSelectedPlan(plan.value)
+                                setTimeout(handleFilterChange, 0)
+                              }}
+                              style={styles.radioInput}
+                            />
+                            <span style={{...styles.radioText, fontSize: '13px'}} title={plan.value}>
+                              {plan.label}
+                            </span>
+                            <span style={styles.countBadge}>{plan.count}</span>
+                          </label>
+                        </div>
+                      )
+                    })
+                  })()}
+                </div>
+              </div>
+            )}
+          </aside>
+
+          {/* Right Content Area */}
+          <div style={styles.content}>
+            {loading && (
+              <div style={styles.loadingContainer}>
+                <div style={styles.spinner}></div>
+                <p style={styles.loadingText}>Searching and generating AI summary...</p>
+              </div>
+            )}
+
+            {!loading && aiSummary && (
+              <div style={styles.aiSummaryBox}>
+                <div style={styles.aiHeader}>
+                  <div style={styles.aiBadge}>AI Mode</div>
+                  <h2 style={styles.aiTitle}>AI Summary</h2>
+                </div>
+                <p style={styles.aiText}>{aiSummary}</p>
+              </div>
+            )}
+
+            {!loading && results.length > 0 && (
+              <div style={styles.resultsSection}>
+                <p style={styles.resultCount}>
+                  About {results.length} results
+                  {selectedState && ` • State: ${selectedState}`}
+                  {selectedDocumentType && ` • ${facets.documentTypes.find(d => d.value === selectedDocumentType)?.label}`}
+                  {selectedPlanId && ` • ${facets.planIds.find(p => p.value === selectedPlanId)?.label}`}
+                </p>
+              
+              {results.map((result, index) => (
+                <div key={result.id} style={styles.resultCard}>
+                  <div style={styles.resultHeader}>
+                    <a 
+                      href={result.document_url || result.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.resultUrl}
+                    >
+                      {result.document_url || result.url}
+                    </a>
+                  </div>
+                  <a 
+                    href={result.document_url || result.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={styles.resultTitle}
+                  >
+                    {result.plan_name || result.plan_id}
+                  </a>
+                  <p style={styles.resultMeta}>
+                    {result.plan_type} • County: {result.county_code}
+                  </p>
+                  <p style={styles.resultSnippet}>
+                    {result.extracted_text?.substring(0, 200)}...
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+            {!loading && !aiSummary && !results.length && initialQuery && (
+              <div style={styles.noResults}>
+                <p style={styles.noResultsText}>
+                  No results found for "{initialQuery}"
+                </p>
+                <p style={styles.noResultsSuggestion}>
+                  Try different keywords or check your spelling
+                </p>
+              </div>
+            )}
           </div>
-        ) : query ? (
-          <div className="text-center py-20">
-            <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No results found</h3>
-            <p className="text-gray-600">Try adjusting your search or filters</p>
-          </div>
-        ) : (
-          <div className="text-center py-20">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Start searching</h3>
-            <p className="text-gray-600">Enter a search term to find health plans</p>
-          </div>
-        )}
-      </div>
+        </div>
+      </main>
     </div>
   )
+}
+
+const styles: { [key: string]: React.CSSProperties } = {
+  container: {
+    minHeight: '100vh',
+    backgroundColor: '#fff',
+    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+  },
+  headerRibbon: {
+    backgroundColor: '#C61C71',
+    padding: '12px 20px',
+    boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  },
+  ribbonContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  logoContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    cursor: 'pointer',
+  },
+  logoIcon: {
+    width: '28px',
+    height: '28px',
+    color: '#ffffff',
+  },
+  logoText: {
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#ffffff',
+    letterSpacing: '-0.5px',
+  },
+  header: {
+    borderBottom: '1px solid #e5e7eb',
+    padding: '16px 20px',
+    backgroundColor: '#fff',
+  },
+  headerContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '30px',
+  },
+  headerLogo: {
+    fontSize: '24px',
+    fontWeight: '500',
+    color: '#C61C71',
+    margin: 0,
+    cursor: 'pointer',
+    flexShrink: 0,
+  },
+  headerSearchForm: {
+    flex: 1,
+    maxWidth: '600px',
+  },
+  headerSearchBox: {
+    display: 'flex',
+    alignItems: 'center',
+    width: '100%',
+    height: '40px',
+    border: '1px solid #dfe1e5',
+    borderRadius: '20px',
+    padding: '0 16px',
+    backgroundColor: '#fff',
+  },
+  searchIcon: {
+    width: '18px',
+    height: '18px',
+    color: '#9aa0a6',
+    marginRight: '10px',
+    flexShrink: 0,
+  },
+  headerSearchInput: {
+    flex: 1,
+    border: 'none',
+    outline: 'none',
+    fontSize: '16px',
+    color: '#202124',
+    backgroundColor: 'transparent',
+  },
+  main: {
+    padding: '20px',
+  },
+  contentWithSidebar: {
+    display: 'flex',
+    gap: '30px',
+    maxWidth: '1400px',
+    margin: '0 auto',
+  },
+  sidebar: {
+    width: '280px',
+    flexShrink: 0,
+  },
+  clearAllButton: {
+    width: '100%',
+    padding: '12px',
+    marginBottom: '20px',
+    backgroundColor: '#C61C71',
+    color: '#fff',
+    border: 'none',
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s',
+  },
+  filterSection: {
+    backgroundColor: '#fff',
+    border: '1px solid #e5e7eb',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '16px',
+  },
+  filterHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '15px',
+  },
+  filterTitle: {
+    fontSize: '16px',
+    fontWeight: '600',
+    color: '#202124',
+    margin: 0,
+  },
+  clearButton: {
+    fontSize: '13px',
+    color: '#C61C71',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '4px 8px',
+    textDecoration: 'underline',
+  },
+  filterOptions: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '10px',
+  },
+  radioLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '8px',
+    cursor: 'pointer',
+    borderRadius: '4px',
+    transition: 'background-color 0.2s',
+  },
+  radioInput: {
+    marginRight: '10px',
+    cursor: 'pointer',
+    accentColor: '#C61C71',
+  },
+  radioText: {
+    flex: 1,
+    fontSize: '14px',
+    color: '#202124',
+  },
+  countBadge: {
+    fontSize: '12px',
+    color: '#5f6368',
+    backgroundColor: '#f1f3f4',
+    padding: '2px 8px',
+    borderRadius: '10px',
+  },
+  content: {
+    flex: 1,
+    minWidth: 0,
+  },
+  loadingContainer: {
+    textAlign: 'center',
+    padding: '60px 20px',
+  },
+  spinner: {
+    width: '40px',
+    height: '40px',
+    border: '4px solid #f3f4f6',
+    borderTop: '4px solid #C61C71',
+    borderRadius: '50%',
+    margin: '0 auto 20px',
+    animation: 'spin 1s linear infinite',
+  },
+  loadingText: {
+    color: '#5f6368',
+    fontSize: '14px',
+  },
+  aiSummaryBox: {
+    backgroundColor: '#fce8f3',
+    border: '1px solid #f9d5e8',
+    borderRadius: '8px',
+    padding: '20px',
+    marginBottom: '30px',
+  },
+  aiHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    marginBottom: '12px',
+  },
+  aiBadge: {
+    backgroundColor: '#C61C71',
+    color: '#fff',
+    fontSize: '11px',
+    fontWeight: '600',
+    padding: '4px 10px',
+    borderRadius: '12px',
+    marginRight: '12px',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
+  },
+  aiTitle: {
+    fontSize: '18px',
+    fontWeight: '500',
+    color: '#202124',
+    margin: 0,
+  },
+  aiText: {
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: '#3c4043',
+    margin: 0,
+    whiteSpace: 'pre-line',
+  },
+  resultsSection: {
+    marginTop: '20px',
+  },
+  resultCount: {
+    fontSize: '14px',
+    color: '#5f6368',
+    marginBottom: '20px',
+  },
+  resultCard: {
+    marginBottom: '30px',
+  },
+  resultHeader: {
+    marginBottom: '4px',
+  },
+  resultUrl: {
+    fontSize: '12px',
+    color: '#5f6368',
+    textDecoration: 'none',
+    display: 'block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  resultTitle: {
+    fontSize: '20px',
+    color: '#C61C71',
+    textDecoration: 'none',
+    display: 'block',
+    marginBottom: '4px',
+    fontWeight: '400',
+  },
+  resultMeta: {
+    fontSize: '13px',
+    color: '#5f6368',
+    marginBottom: '8px',
+  },
+  resultSnippet: {
+    fontSize: '14px',
+    lineHeight: '1.6',
+    color: '#3c4043',
+    margin: 0,
+  },
+  noResults: {
+    textAlign: 'center',
+    padding: '60px 20px',
+  },
+  noResultsText: {
+    fontSize: '18px',
+    color: '#202124',
+    marginBottom: '10px',
+  },
+  noResultsSuggestion: {
+    fontSize: '14px',
+    color: '#5f6368',
+  },
 }

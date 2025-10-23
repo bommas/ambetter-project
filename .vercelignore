@@ -1,0 +1,12 @@
+node_modules
+.next
+.env.local
+.env
+*.log
+temp
+*.pdf
+scripts/run_pipeline.py
+run_pipeline.py
+scripts/pdf-processor.js
+scripts/extract-pdf-urls.js
+
