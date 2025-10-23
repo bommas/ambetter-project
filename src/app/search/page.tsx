@@ -47,6 +47,8 @@ export default function SearchResultsPage() {
   const [selectedPlan, setSelectedPlan] = useState<string>('')
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'semantic' | 'keyword'>('semantic')
+  const [lastAISummaryQuery, setLastAISummaryQuery] = useState<string>('')
+  const [aiSummaryCache, setAiSummaryCache] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (initialQuery) {
@@ -75,7 +77,10 @@ export default function SearchResultsPage() {
 
   const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string, mode?: 'semantic' | 'keyword'}) => {
     setLoading(true)
-    setAiSummary(null)
+    // Only clear AI summary if the query text changed
+    if (searchQuery !== lastAISummaryQuery) {
+      setAiSummary(null)
+    }
     setResults([])
 
     try {
@@ -113,14 +118,23 @@ export default function SearchResultsPage() {
       const searchResults = esData.results || []
       setResults(searchResults)
 
-      // Generate AI Summary using OpenAI
-      const aiResponse = await fetch('/api/ai-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchQuery, results: searchResults })
-      })
-      const aiData = await aiResponse.json()
-      setAiSummary(aiData.summary)
+      // Generate AI Summary only when query text changes; otherwise use cache
+      if (searchQuery === lastAISummaryQuery && aiSummary) {
+        // Do nothing; keep existing summary
+      } else if (aiSummaryCache[searchQuery]) {
+        setAiSummary(aiSummaryCache[searchQuery])
+        setLastAISummaryQuery(searchQuery)
+      } else {
+        const aiResponse = await fetch('/api/ai-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: searchQuery, results: searchResults })
+        })
+        const aiData = await aiResponse.json()
+        setAiSummary(aiData.summary)
+        setLastAISummaryQuery(searchQuery)
+        setAiSummaryCache(prev => ({ ...prev, [searchQuery]: aiData.summary }))
+      }
 
     } catch (error) {
       console.error('Search error:', error)
