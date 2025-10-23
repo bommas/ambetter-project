@@ -1,14 +1,14 @@
-import { Redis } from '@upstash/redis'
-
 // Initialize Upstash Redis client for LLM response caching
 // If credentials are not set, return null (cache will be disabled)
-let redis: Redis | null = null
+let redis: any | null = null
 
 try {
   const upstashUrl = process.env.UPSTASH_REDIS_REST_URL
   const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN
 
   if (upstashUrl && upstashToken) {
+    // Dynamically import Redis only if credentials are available
+    const { Redis } = require('@upstash/redis')
     redis = new Redis({
       url: upstashUrl,
       token: upstashToken,
@@ -39,7 +39,7 @@ export async function getCachedSummary(query: string, resultsHash: string): Prom
   
   try {
     const key = getCacheKey(query, resultsHash)
-    const cached = await redis.get<string>(key)
+    const cached = await redis.get(key) as string | null
     if (cached) {
       console.log(`🎯 Cache HIT for query: "${query}"`)
     }
