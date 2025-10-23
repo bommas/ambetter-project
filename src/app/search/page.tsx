@@ -53,6 +53,7 @@ export default function SearchResultsPage() {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('')
   const [selectedPlanType, setSelectedPlanType] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'semantic' | 'keyword'>('semantic')
+  const [showAISummary, setShowAISummary] = useState(false) // AI summary is opt-in
   const [lastAISummaryQuery, setLastAISummaryQuery] = useState<string>('')
   const [aiSummaryCache, setAiSummaryCache] = useState<Record<string, string>>({})
 
@@ -126,22 +127,24 @@ export default function SearchResultsPage() {
       setResults(searchResults)
       setTotal(esData.total || 0)
 
-      // Generate AI Summary only when query text changes; otherwise use cache
-      if (searchQuery === lastAISummaryQuery && aiSummary) {
-        // Do nothing; keep existing summary
-      } else if (aiSummaryCache[searchQuery]) {
-        setAiSummary(aiSummaryCache[searchQuery])
-        setLastAISummaryQuery(searchQuery)
-      } else {
-        const aiResponse = await fetch('/api/ai-summary', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: searchQuery, results: searchResults })
-        })
-        const aiData = await aiResponse.json()
-        setAiSummary(aiData.summary)
-        setLastAISummaryQuery(searchQuery)
-        setAiSummaryCache(prev => ({ ...prev, [searchQuery]: aiData.summary }))
+      // Generate AI Summary only if user requested it
+      if (showAISummary) {
+        if (searchQuery === lastAISummaryQuery && aiSummary) {
+          // Do nothing; keep existing summary
+        } else if (aiSummaryCache[searchQuery]) {
+          setAiSummary(aiSummaryCache[searchQuery])
+          setLastAISummaryQuery(searchQuery)
+        } else {
+          const aiResponse = await fetch('/api/ai-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: searchQuery, results: searchResults })
+          })
+          const aiData = await aiResponse.json()
+          setAiSummary(aiData.summary)
+          setLastAISummaryQuery(searchQuery)
+          setAiSummaryCache(prev => ({ ...prev, [searchQuery]: aiData.summary }))
+        }
       }
 
     } catch (error) {
@@ -532,9 +535,32 @@ export default function SearchResultsPage() {
 
             {!loading && results.length > 0 && (
               <div style={styles.resultsSection}>
-                <h2 style={styles.searchResultsTitle}>
-                  Search Results for: {initialQuery}
-                </h2>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h2 style={styles.searchResultsTitle}>
+                    Search Results for: {initialQuery}
+                  </h2>
+                  {!showAISummary && !aiSummary && (
+                    <button 
+                      onClick={() => {
+                        setShowAISummary(true)
+                        performSearch(initialQuery)
+                      }}
+                      style={{
+                        height: '36px',
+                        padding: '0 16px',
+                        background: '#C61C71',
+                        color: '#fff',
+                        border: 0,
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '14px'
+                      }}
+                    >
+                      Show AI Summary
+                    </button>
+                  )}
+                </div>
                 <p style={styles.resultCount}>
                   showing 1 - {Math.min(results.length, 10)} out of {total || results.length}
                 </p>
