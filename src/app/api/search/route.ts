@@ -245,12 +245,27 @@ function buildSearchQuery(query: string, filters: any, sortBy: string, mode: 'se
 function extractPlanNameFromBody(bodyText: string): string | null {
   if (!bodyText) return null
 
-  // Pattern 1: Look for "MAJOR MEDICAL EXPENSE POLICY" followed by plan name
+  // Pattern 1: Look for explicit product/tier phrases (e.g., "Everyday Gold + Vision + Adult Dental")
+  const productTierPattern = /(Everyday|Complete|Focused|Elite|Standard|Premier|Value)\s+(Gold|Silver|Bronze)(?:\s*\+\s*[A-Za-z\s]+)?/i
+  const productTierMatch = bodyText.match(productTierPattern)
+  if (productTierMatch && productTierMatch[0]) {
+    const candidate = productTierMatch[0].trim()
+    if (candidate.length > 5 && candidate.length < 120) return candidate
+  }
+
+  // Pattern 2: Ambetter branded product names (e.g., "Ambetter Health Premier", "Ambetter Value")
+  const ambetterProductPattern = /Ambetter(?:\s+Health)?\s+(Premier|Value|TXSMP)(?:[^\n]{0,60})?/i
+  const ambetterProductMatch = bodyText.match(ambetterProductPattern)
+  if (ambetterProductMatch && ambetterProductMatch[0]) {
+    const candidate = ambetterProductMatch[0].trim()
+    if (candidate.length > 5 && candidate.length < 120) return candidate
+  }
+
+  // Pattern 3: Look for "MAJOR MEDICAL EXPENSE POLICY" followed by plan name line
   const policyPattern = /MAJOR MEDICAL EXPENSE POLICY\s+([^\n]+)/i
   const policyMatch = bodyText.match(policyPattern)
   if (policyMatch && policyMatch[1]) {
     const planName = policyMatch[1].trim()
-    // Clean up the plan name (remove extra whitespace, URLs, etc.)
     const cleanName = planName
       .replace(/Ambetter\.SuperiorHealthPlan\.com/gi, '')
       .replace(/\s+/g, ' ')
@@ -260,7 +275,7 @@ function extractPlanNameFromBody(bodyText: string): string | null {
     }
   }
 
-  // Pattern 2: Look for "Ambetter" followed by plan type (e.g., "Ambetter + Adult Vision")
+  // Pattern 4: Look for "Ambetter + <addon>" (e.g., "Ambetter + Adult Vision")
   const ambetterPattern = /Ambetter\s*\+?\s*([A-Z][A-Za-z\s]+(?:Care|Vision|Health|Plan|Plus|Select|Choice|Value|Essential|Balanced|Secure))/
   const ambetterMatch = bodyText.match(ambetterPattern)
   if (ambetterMatch && ambetterMatch[0]) {
@@ -270,7 +285,7 @@ function extractPlanNameFromBody(bodyText: string): string | null {
     }
   }
 
-  // Pattern 3: Look for "FOR AMBETTER FROM" followed by plan name
+  // Pattern 5: Look for "FOR AMBETTER FROM <Issuer>" followed by issuer name
   const forAmbetterPattern = /FOR AMBETTER FROM\s+([A-Z][A-Za-z\s]+)/i
   const forAmbetterMatch = bodyText.match(forAmbetterPattern)
   if (forAmbetterMatch && forAmbetterMatch[1]) {
@@ -278,12 +293,6 @@ function extractPlanNameFromBody(bodyText: string): string | null {
     if (planName.length < 100) {
       return planName
     }
-  }
-
-  // Pattern 4: Look for "Ambetter from Superior HealthPlan"
-  if (bodyText.includes('Ambetter from Superior HealthPlan') || 
-      bodyText.includes('AMBETTER FROM SUPERIOR HEALTHPLAN')) {
-    return 'Ambetter from Superior HealthPlan'
   }
 
   return null
