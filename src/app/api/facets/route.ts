@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import client from '@/lib/elasticsearch'
 import { INDICES } from '@/lib/elasticsearch'
 
+// Force this route to be dynamic (not statically generated)
+export const dynamic = 'force-dynamic'
+
 /**
  * API endpoint to get facets (aggregations) for filtering
  * Returns unique values and counts for filterable fields
