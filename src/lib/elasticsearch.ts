@@ -22,7 +22,9 @@ export const INDICES = {
   SEARCH_EVENTS: 'search-events',
   CLICK_EVENTS: 'click-events',
   ANALYTICS_METRICS: 'analytics-metrics',
-  USER_SESSIONS: 'user-sessions'
+  USER_SESSIONS: 'user-sessions',
+  CURATIONS: 'search-curations',
+  SEARCH_BOOSTS: 'search-boosts'
 } as const
 
 // Health plan document mapping

@@ -352,13 +352,77 @@ async function main() {
   }
 }
 
-// Run if executed directly
-if (require.main === module) {
-  main().catch(error => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
+async function processSingleUrl(singleUrl, state) {
+  console.log(`\n${'='.repeat(60)}`)
+  console.log(`🎯 Processing single URL: ${singleUrl} (state=${state || 'N/A'})`)
+  console.log(`${'='.repeat(60)}`)
+
+  let totalIndexed = 0
+  // Extract PDFs
+  const pdfLinks = await extractPDFsFromPage(singleUrl, state || 'NA')
+  console.log(`📊 Total PDFs to process from single URL: ${pdfLinks.length}`)
+
+  for (let i = 0; i < pdfLinks.length; i++) {
+    const pdfLink = pdfLinks[i]
+    console.log(`\n[${i + 1}/${pdfLinks.length}] Processing ${pdfLink.planType || 'PDF'}: ${pdfLink.url}`)
+
+    try {
+      const filename = path.basename(new URL(pdfLink.url).pathname)
+      const filepath = await downloadPDF(pdfLink.url, filename)
+      if (!filepath) continue
+
+      const extractedText = await extractTextFromPDF(filepath)
+      const document = {
+        title: pdfLink.title || filename,
+        plan_name: pdfLink.title || filename.replace('.pdf', ''),
+        state: state || 'NA',
+        url: pdfLink.url,
+        document_url: pdfLink.url,
+        extracted_text: extractedText,
+        plan_type: (pdfLink.planType || 'brochure').toLowerCase(),
+        pdf: {
+          filename: filename,
+          size: (await fs.stat(filepath)).size
+        },
+        metadata: {
+          source: 'ambetter_brochures_single',
+          state: state || 'NA',
+          plan_type: pdfLink.planType,
+          file_name: filename,
+          indexed_at: new Date().toISOString()
+        }
+      }
+      const result = await indexToElasticsearch(document)
+      if (result) {
+        console.log(`✅ Indexed: ${filename}`)
+        totalIndexed++
+      }
+      await fs.unlink(filepath)
+    } catch (e) {
+      console.error('❌ Error processing PDF:', e.message)
+    }
+  }
+
+  console.log(`\n✨ Single URL Complete: ${totalIndexed} documents indexed`)
+  return totalIndexed
 }
 
-module.exports = { main, processState, crawlHealthPlansContent, extractPDFsFromPage };
+// Run if executed directly
+if (require.main === module) {
+  const singleUrl = process.env.SINGLE_URL
+  const singleState = process.env.SINGLE_STATE
+  if (singleUrl) {
+    processSingleUrl(singleUrl, singleState).catch(err => {
+      console.error('Fatal error (single):', err)
+      process.exit(1)
+    })
+  } else {
+    main().catch(error => {
+      console.error('Fatal error:', error);
+      process.exit(1);
+    });
+  }
+}
+
+module.exports = { main, processState, crawlHealthPlansContent, extractPDFsFromPage, processSingleUrl };
 

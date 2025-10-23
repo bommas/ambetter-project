@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST() {
-  const res = NextResponse.json({ ok: true })
+export async function POST(request: NextRequest) {
+  const loginUrl = new URL('/admin/login', request.url)
+  const res = NextResponse.redirect(loginUrl, 303)
   res.cookies.set('admin_auth', '', {
     httpOnly: true,
     secure: true,

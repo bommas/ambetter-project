@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/lib/elasticsearch'
 import { INDICES } from '@/lib/elasticsearch'
+import client from '@/lib/elasticsearch'
 
 interface SearchRequest {
   query: string
@@ -58,14 +59,42 @@ export async function POST(request: NextRequest) {
       size: esRequestBody.size
     }, null, 2))
     
-    // Execute the search
+    // Load curations and boosts
+    const [curationsResp, boostsResp] = await Promise.all([
+      client.get({ index: INDICES.CURATIONS, id: Buffer.from(query.toLowerCase()).toString('base64') }).catch(() => null),
+      client.search({ index: INDICES.SEARCH_BOOSTS, body: { size: 1, sort: [{ 'updated_at': { order: 'desc' } }] } }).catch(() => null)
+    ])
+
+    const pins: string[] = (curationsResp as any)?.['_source']?.pins || []
+    const boostsDoc: any = boostsResp?.hits?.hits?.[0]?.['_source'] || {}
+
+    // Apply numeric boosts via function_score if configured
+    const functions: any[] = []
+    if (Array.isArray(boostsDoc.numeric_boosts)) {
+      for (const nb of boostsDoc.numeric_boosts) {
+        if (nb?.field && (nb.type === 'log' || nb.type === 'sigmoid')) {
+          const script = nb.type === 'log'
+            ? `1 + Math.log(1 + doc['${nb.field}'].value * ${(nb.factor || 1)})`
+            : `1 / (1 + Math.exp(-1 * (doc['${nb.field}'].value * ${(nb.factor || 1)})))`
+          functions.push({ script_score: { script: { source: script } } })
+        }
+      }
+    }
+
+    // Wrap original query if functions exist
+    let finalQuery: any = esRequestBody.query
+    if (functions.length > 0) {
+      finalQuery = { function_score: { query: esRequestBody.query, functions, boost_mode: 'multiply', score_mode: 'multiply' } }
+    }
+
+    // Execute search
     const response = await client.search({
       index: INDICES.HEALTH_PLANS,
-      body: esRequestBody
+      body: { ...esRequestBody, query: finalQuery }
     })
 
     // Format the results with extracted plan names
-    const results = response.hits.hits.map((hit: any) => {
+    let results = response.hits.hits.map((hit: any) => {
       const source = hit._source
       const extractedPlanName = extractPlanNameFromBody(source.extracted_text || source.body || '')
       
@@ -78,6 +107,24 @@ export async function POST(request: NextRequest) {
         _score: hit._score
       }
     })
+
+    // Apply pinning (move curated URLs to top in order)
+    if (pins.length > 0) {
+      const pinned: any[] = []
+      const rest: any[] = []
+      const pinSet = new Set(pins)
+      for (const url of pins) {
+        const idx = results.findIndex(r => (r.document_url || r.url) === url)
+        if (idx >= 0) {
+          pinned.push(results[idx])
+        }
+      }
+      for (const r of results) {
+        const u = r.document_url || r.url
+        if (!pinSet.has(u)) rest.push(r)
+      }
+      results = [...pinned, ...rest]
+    }
 
     // Track search analytics
     await trackSearchEvent(query, filters, results.length)
