@@ -42,6 +42,7 @@ export default function SearchResultsPage() {
   const [query, setQuery] = useState(initialQuery)
   const [suggestions, setSuggestions] = useState<{ text: string }[]>([])
   const [results, setResults] = useState<SearchResult[]>([])
+  const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [aiSummary, setAiSummary] = useState<string | null>(null)
   const [facets, setFacets] = useState<Facets>({ states: [], counties: [], documentTypes: [], plans: [], planIds: [], planTypes: [] })
@@ -123,6 +124,7 @@ export default function SearchResultsPage() {
       const esData = await esResponse.json()
       const searchResults = esData.results || []
       setResults(searchResults)
+      setTotal(esData.total || 0)
 
       // Generate AI Summary only when query text changes; otherwise use cache
       if (searchQuery === lastAISummaryQuery && aiSummary) {
