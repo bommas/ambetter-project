@@ -40,7 +40,7 @@ npm run dev
 
 ### Core Documents
 
-#### **[📘 PROJECT_MASTER.md](./PROJECT_MASTER.md)** - Complete Project Documentation
+#### **[📘 PROJECT_MASTER.md](./docs/PROJECT_MASTER.md)** - Complete Project Documentation
 - ✅ Complete project overview and status
 - ✅ Phase 1 & Phase 2 details  
 - ✅ Multi-state setup guide
@@ -56,12 +56,26 @@ npm run dev
 - 🔄 **Component Interaction Flows**: Sequence diagrams for user and admin workflows
 - 🎨 **Visual System Architecture**: Comprehensive Mermaid diagrams for all system components
 
-#### **[🎯 DEMO_101_FLOWS.md](./DEMO_101_FLOWS.md)** - Demo Flow Diagrams ⭐ NEW
+### Additional Documentation
+
+#### **[🎯 DEMO_101_FLOWS.md](./docs/DEMO_101_FLOWS.md)** - Demo Flow Diagrams
 - 📱 **User Journey Flows**: Step-by-step user experience diagrams
 - 🤖 **AI Summary Flow**: How the optional AI summary works
 - 👨‍💼 **Admin Management Flow**: Admin panel workflows
 - 🔧 **System Architecture Flows**: Technical process flows
 - 🎯 **Demo Scenarios**: Ready-to-use demo scripts
+
+#### **[📋 CODING_STANDARDS.md](./docs/CODING_STANDARDS.md)** - Development Guidelines
+- 🎨 **Code Style**: TypeScript, React, and Next.js best practices
+- 📝 **Naming Conventions**: Variables, functions, and file naming
+- 🏗️ **Architecture Patterns**: Component structure and API design
+- ✅ **Quality Standards**: Testing, error handling, and documentation
+
+#### **[🚀 DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - Deployment Guide
+- 🌐 **Vercel Setup**: Production deployment instructions
+- 🔧 **Environment Variables**: Configuration and secrets management
+- 📊 **Monitoring**: Health checks and performance monitoring
+- 🔄 **CI/CD**: Automated deployment workflows
 
 ---
 
@@ -157,10 +171,14 @@ ambetter-project/
 │   ├── DEPLOYMENT.md         # Deployment guide
 │   └── archive/              # Historical documentation
 ├── run_multi_state_pipeline.py  # Pipeline orchestrator
-├── PROJECT_MASTER.md         # 📘 Complete project documentation
-├── ARCHITECTURE.md           # 🏗️ System architecture with flowcharts
-├── DEMO_101_FLOWS.md         # 🎯 Demo flow diagrams
-├── CODING_STANDARDS.md       # Development guidelines
+├── README.md                # 📖 Project overview and quick start
+├── ARCHITECTURE.md          # 🏗️ System architecture with flowcharts
+├── docs/                    # 📚 All documentation
+│   ├── PROJECT_MASTER.md    # 📘 Complete project documentation
+│   ├── DEMO_101_FLOWS.md    # 🎯 Demo flow diagrams
+│   ├── CODING_STANDARDS.md  # 📋 Development guidelines
+│   ├── DEPLOYMENT.md        # 🚀 Deployment guide
+│   └── archive/             # 📁 Historical documentation
 └── package.json
 ```
 
@@ -287,10 +305,11 @@ vercel env add OPENAI_API_KEY
 - **Search Demo**: [ambetter-project.vercel.app/search?q=texas+health+plans](https://ambetter-project.vercel.app/search?q=texas+health+plans)
 
 ### **Documentation**
-- **📘 Complete Guide**: [PROJECT_MASTER.md](./PROJECT_MASTER.md)
+- **📘 Complete Guide**: [docs/PROJECT_MASTER.md](./docs/PROJECT_MASTER.md)
 - **🏗️ Architecture**: [ARCHITECTURE.md](./ARCHITECTURE.md) (with flowcharts)
-- **🎯 Demo Flows**: [DEMO_101_FLOWS.md](./DEMO_101_FLOWS.md)
-- **📋 Coding Standards**: [CODING_STANDARDS.md](./CODING_STANDARDS.md)
+- **🎯 Demo Flows**: [docs/DEMO_101_FLOWS.md](./docs/DEMO_101_FLOWS.md)
+- **📋 Coding Standards**: [docs/CODING_STANDARDS.md](./docs/CODING_STANDARDS.md)
+- **🚀 Deployment**: [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)
 
 ### **Development**
 - **Local Development**: `npm run dev` → [localhost:3000](http://localhost:3000)
