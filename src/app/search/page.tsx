@@ -57,6 +57,8 @@ export default function SearchResultsPage() {
   const [aiSummaryExpanded, setAiSummaryExpanded] = useState(false) // AI summary collapsed by default
   const [lastAISummaryQuery, setLastAISummaryQuery] = useState<string>('')
   const [aiSummaryCache, setAiSummaryCache] = useState<Record<string, string>>({})
+  const [currentPage, setCurrentPage] = useState(1)
+  const [resultsPerPage, setResultsPerPage] = useState(10)
 
   useEffect(() => {
     if (initialQuery) {
@@ -84,7 +86,7 @@ export default function SearchResultsPage() {
     }
   }
 
-  const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string, mode?: 'semantic' | 'keyword'}) => {
+  const performSearch = async (searchQuery: string, filters?: {state?: string, county?: string, documentType?: string, plan?: string, planId?: string, mode?: 'semantic' | 'keyword'}, resetPage: boolean = true) => {
     setLoading(true)
     // Clear AI summary on new queries (user must click "Show AI Summary" button to generate)
     if (searchQuery !== lastAISummaryQuery) {
@@ -92,6 +94,11 @@ export default function SearchResultsPage() {
       setShowAISummary(false) // Reset the flag on new queries
     }
     setResults([])
+    
+    // Reset to first page for new searches (not pagination changes)
+    if (resetPage) {
+      setCurrentPage(1)
+    }
 
     try {
       // Build filters object
@@ -118,8 +125,8 @@ export default function SearchResultsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           query: searchQuery, 
-          page: 1, 
-          limit: 30, // Show 30 results (increased from 20)
+          page: currentPage, 
+          limit: resultsPerPage,
           filters: searchFilters,
           mode: filters?.mode || searchMode
         })
@@ -192,8 +199,41 @@ export default function SearchResultsPage() {
     setSelectedDocumentType('')
     setSelectedPlan('')
     setSelectedPlanId('')
+    setCurrentPage(1) // Reset to first page when clearing filters
     performSearch(initialQuery, {})
     loadFacets(initialQuery)
+  }
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+    performSearch(query, {
+      state: selectedState,
+      county: selectedCounty,
+      documentType: selectedDocumentType,
+      plan: selectedPlan,
+      planId: selectedPlanId,
+      mode: searchMode
+    }, false) // Don't reset page for pagination changes
+  }
+
+  const handleResultsPerPageChange = (newResultsPerPage: number) => {
+    setResultsPerPage(newResultsPerPage)
+    setCurrentPage(1) // Reset to first page when changing results per page
+    performSearch(query, {
+      state: selectedState,
+      county: selectedCounty,
+      documentType: selectedDocumentType,
+      plan: selectedPlan,
+      planId: selectedPlanId,
+      mode: searchMode
+    })
+  }
+
+  const getPaginationInfo = () => {
+    const totalPages = Math.ceil(total / resultsPerPage)
+    const startResult = (currentPage - 1) * resultsPerPage + 1
+    const endResult = Math.min(currentPage * resultsPerPage, total)
+    return { totalPages, startResult, endResult }
   }
 
   const handleModeChange = (mode: 'semantic' | 'keyword') => {
@@ -635,7 +675,7 @@ export default function SearchResultsPage() {
                   )}
                 </div>
                 <p style={styles.resultCount}>
-                  showing 1 - {Math.min(results.length, 30)} out of {total || results.length}
+                  showing {getPaginationInfo().startResult} - {getPaginationInfo().endResult} out of {total || results.length}
                 </p>
               
               {results.map((result, index) => {
@@ -682,6 +722,111 @@ export default function SearchResultsPage() {
                   </div>
                 )
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!loading && results.length > 0 && (
+            <div style={styles.paginationContainer}>
+              {/* Results per page selector */}
+              <div style={styles.resultsPerPageContainer}>
+                <label style={styles.resultsPerPageLabel}>Results per page:</label>
+                <select 
+                  value={resultsPerPage} 
+                  onChange={(e) => handleResultsPerPageChange(Number(e.target.value))}
+                  style={styles.resultsPerPageSelect}
+                >
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={30}>30</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+
+              {/* Page numbers */}
+              <div style={styles.pagination}>
+                {(() => {
+                  const { totalPages, startResult, endResult } = getPaginationInfo()
+                  const pages = []
+                  
+                  // Previous button
+                  if (currentPage > 1) {
+                    pages.push(
+                      <button
+                        key="prev"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        style={styles.paginationButton}
+                      >
+                        Previous
+                      </button>
+                    )
+                  }
+
+                  // Page numbers
+                  const startPage = Math.max(1, currentPage - 2)
+                  const endPage = Math.min(totalPages, currentPage + 2)
+
+                  if (startPage > 1) {
+                    pages.push(
+                      <button
+                        key={1}
+                        onClick={() => handlePageChange(1)}
+                        style={styles.paginationButton}
+                      >
+                        1
+                      </button>
+                    )
+                    if (startPage > 2) {
+                      pages.push(<span key="ellipsis1" style={styles.paginationEllipsis}>...</span>)
+                    }
+                  }
+
+                  for (let i = startPage; i <= endPage; i++) {
+                    pages.push(
+                      <button
+                        key={i}
+                        onClick={() => handlePageChange(i)}
+                        style={{
+                          ...styles.paginationButton,
+                          ...(i === currentPage ? styles.paginationButtonActive : {})
+                        }}
+                      >
+                        {i}
+                      </button>
+                    )
+                  }
+
+                  if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                      pages.push(<span key="ellipsis2" style={styles.paginationEllipsis}>...</span>)
+                    }
+                    pages.push(
+                      <button
+                        key={totalPages}
+                        onClick={() => handlePageChange(totalPages)}
+                        style={styles.paginationButton}
+                      >
+                        {totalPages}
+                      </button>
+                    )
+                  }
+
+                  // Next button
+                  if (currentPage < totalPages) {
+                    pages.push(
+                      <button
+                        key="next"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        style={styles.paginationButton}
+                      >
+                        Next
+                      </button>
+                    )
+                  }
+
+                  return pages
+                })()}
+              </div>
             </div>
           )}
 
@@ -939,6 +1084,60 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '14px',
     color: '#70757a',
     marginBottom: '24px',
+  },
+  paginationContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: '40px',
+    padding: '20px 0',
+    borderTop: '1px solid #e5e7eb',
+  },
+  resultsPerPageContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  resultsPerPageLabel: {
+    fontSize: '14px',
+    color: '#70757a',
+    fontWeight: '400',
+  },
+  resultsPerPageSelect: {
+    padding: '6px 12px',
+    border: '1px solid #dadce0',
+    borderRadius: '4px',
+    fontSize: '14px',
+    backgroundColor: '#fff',
+    color: '#202124',
+    cursor: 'pointer',
+  },
+  pagination: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+  },
+  paginationButton: {
+    padding: '8px 12px',
+    border: '1px solid #dadce0',
+    borderRadius: '4px',
+    fontSize: '14px',
+    backgroundColor: '#fff',
+    color: '#202124',
+    cursor: 'pointer',
+    minWidth: '40px',
+    textAlign: 'center',
+    transition: 'all 0.2s ease',
+  },
+  paginationButtonActive: {
+    backgroundColor: '#1a73e8',
+    color: '#fff',
+    borderColor: '#1a73e8',
+  },
+  paginationEllipsis: {
+    padding: '8px 4px',
+    fontSize: '14px',
+    color: '#70757a',
   },
   resultCard: {
     marginBottom: '30px',
