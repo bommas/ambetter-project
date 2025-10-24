@@ -54,19 +54,19 @@ export async function POST(request: NextRequest) {
     // Build the Elasticsearch query with custom weights
     const searchQuery = buildSearchQuery(query, filters, sortBy, mode, textWeights)
     
-    // Construct the full Elasticsearch request body with collapse to deduplicate
+    // Construct the full Elasticsearch request body
+    // Fetch more results than needed (limit * 2) to account for duplicates we'll filter out
+    const fetchSize = limit * 3
     const esRequestBody = {
       ...searchQuery,
-      from: (page - 1) * limit,
-      size: limit,
-      collapse: {
-        field: 'plan_id.keyword' // Deduplicate by plan ID (more reliable than URL with query params)
-      },
+      from: (page - 1) * fetchSize,
+      size: fetchSize,
       _source: [
         'title',
         'plan_name',
         'plan_type',
         'plan_id',
+        'state',
         'county_code',
         'extracted_text',
         'url',
@@ -120,11 +120,18 @@ export async function POST(request: NextRequest) {
     })
     console.log('📊 Elasticsearch returned:', response.hits.hits.length, 'results out of', response.hits.total)
 
+    // Helper function to normalize URL (strip query parameters)
+    const normalizeUrl = (url: string): string => {
+      if (!url) return ''
+      const queryIndex = url.indexOf('?')
+      return queryIndex > 0 ? url.substring(0, queryIndex) : url
+    }
+
     // Format the results with extracted plan names
     let results = response.hits.hits.map((hit: any) => {
       const source = hit._source
       const extractedPlanName = extractPlanNameFromBody(source.extracted_text || source.body || '')
-      
+
       return {
         id: hit._id,
         ...source,
@@ -134,6 +141,20 @@ export async function POST(request: NextRequest) {
         _score: hit._score
       }
     })
+
+    // Deduplicate by normalized URL (strip query parameters like __hstc, __hssc, __hsfp)
+    const seenUrls = new Set<string>()
+    results = results.filter((result: any) => {
+      const normalizedUrl = normalizeUrl(result.document_url || result.url)
+      if (seenUrls.has(normalizedUrl)) {
+        return false // Skip duplicate
+      }
+      seenUrls.add(normalizedUrl)
+      return true
+    })
+
+    // Trim results to requested limit
+    results = results.slice(0, limit)
 
     // Apply excludes (remove matches by URL)
     if (excludes.length > 0) {

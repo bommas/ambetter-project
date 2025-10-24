@@ -135,6 +135,17 @@ export async function GET(request: NextRequest) {
       return labels[type] || type
     }
 
+    // Helper function to format plan type labels (HMO, EPO, etc.)
+    const formatPlanType = (type: string): string => {
+      const labels: { [key: string]: string } = {
+        'hmo': 'HMO',
+        'epo': 'EPO',
+        'ppo': 'PPO',
+        'pos': 'POS'
+      }
+      return labels[type] || type.toUpperCase()
+    }
+
     // Helper function to categorize and format plan names
     const categorizePlan = (planName: string) => {
       const name = planName.toLowerCase()
@@ -204,32 +215,42 @@ export async function GET(request: NextRequest) {
     })
     
     const facets = {
-      states: aggregations.states?.buckets.map((bucket: any) => ({
-        value: bucket.key,
-        label: bucket.key,
-        count: bucket.doc_count
-      })) || [],
-      counties: aggregations.counties?.buckets.map((bucket: any) => ({
-        value: bucket.key,
-        label: bucket.key,
-        count: bucket.doc_count
-      })) || [],
-      documentTypes: aggregations.document_types?.buckets.map((bucket: any) => ({
-        value: bucket.key,
-        label: formatDocumentType(bucket.key),
-        count: bucket.doc_count
-      })) || [],
+      states: aggregations.states?.buckets
+        .filter((bucket: any) => bucket.key !== 'N/A')
+        .map((bucket: any) => ({
+          value: bucket.key,
+          label: bucket.key,
+          count: bucket.doc_count
+        })) || [],
+      counties: aggregations.counties?.buckets
+        .filter((bucket: any) => bucket.key !== 'N/A')
+        .map((bucket: any) => ({
+          value: bucket.key,
+          label: bucket.key,
+          count: bucket.doc_count
+        })) || [],
+      documentTypes: aggregations.document_types?.buckets
+        .filter((bucket: any) => bucket.key !== 'Other')
+        .map((bucket: any) => ({
+          value: bucket.key,
+          label: formatDocumentType(bucket.key),
+          count: bucket.doc_count
+        })) || [],
       plans: sortedPlans.slice(0, 30), // Top 30 plans, grouped by tier
-      planIds: aggregations.plan_ids?.buckets.map((bucket: any) => ({
-        value: bucket.key,
-        label: `Plan ${bucket.key}`,
-        count: bucket.doc_count
-      })) || [],
-      planTypes: aggregations.plan_types?.buckets.map((bucket: any) => ({
-        value: bucket.key,
-        label: formatDocumentType(bucket.key),
-        count: bucket.doc_count
-      })) || []
+      planIds: aggregations.plan_ids?.buckets
+        .filter((bucket: any) => bucket.key !== 'Unknown' && bucket.key !== 'unknown')
+        .map((bucket: any) => ({
+          value: bucket.key,
+          label: `Plan ${bucket.key}`,
+          count: bucket.doc_count
+        })) || [],
+      planTypes: aggregations.plan_types?.buckets
+        .filter((bucket: any) => !['summary_of_benefits', 'evidence_of_coverage', 'policy', 'disclosure', 'brochure', 'Other'].includes(bucket.key))
+        .map((bucket: any) => ({
+          value: bucket.key,
+          label: formatPlanType(bucket.key),
+          count: bucket.doc_count
+        })) || []
     }
 
     return NextResponse.json(facets)
