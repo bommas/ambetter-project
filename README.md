@@ -47,12 +47,14 @@ npm run dev
 - ✅ API documentation
 - ✅ Troubleshooting guide
 
-#### **[🏗️ ARCHITECTURE.md](./ARCHITECTURE.md)** - System Architecture & Data Flow ⭐ NEW
-- 📥 **Data Ingestion Flow**: Visual diagrams showing how PDFs are crawled and indexed
+#### **[🏗️ ARCHITECTURE.md](./ARCHITECTURE.md)** - System Architecture & Data Flow ⭐ UPDATED
+- 📥 **Data Ingestion Flow**: Interactive Mermaid flowcharts showing PDF crawling and indexing
 - 🔍 **Search Architecture**: Hybrid search (lexical + semantic) with detailed query examples
 - 🗄️ **Index Management**: Multi-index architecture with state-based versioning
-- 🛠️ **Technology Stack**: Complete system component overview
+- 🛠️ **Technology Stack**: Complete system component overview with visual diagrams
 - 📊 **End-to-End Data Flow**: From admin ingestion to user search results
+- 🔄 **Component Interaction Flows**: Sequence diagrams for user and admin workflows
+- 🎨 **Visual System Architecture**: Comprehensive Mermaid diagrams for all system components
 
 #### **[🎯 DEMO_101_FLOWS.md](./DEMO_101_FLOWS.md)** - Demo Flow Diagrams ⭐ NEW
 - 📱 **User Journey Flows**: Step-by-step user experience diagrams
@@ -65,12 +67,59 @@ npm run dev
 
 ## 🎯 What is This?
 
-A full-stack Next.js application that allows users to:
-- 🔍 Search health plans across **Texas** and **Florida**
-- 🤖 Get **AI-powered summaries** of plan options
-- 📊 Filter by state, document type, and plan ID
-- 📄 Access PDF brochures directly
-- 📈 Track search analytics (coming soon)
+A comprehensive full-stack Next.js application that provides:
+
+### 🔍 **Advanced Search Capabilities**
+- **Multi-State Coverage**: Search health plans across Texas, Florida, and California
+- **Hybrid Search**: Combines lexical (keyword) and semantic (AI-powered) search
+- **Smart Filtering**: Filter by state, county, plan type, and document type
+- **Real-time Facets**: Dynamic filtering with contextual result counts
+- **Deduplication**: Shows unique plans with intelligent result collapsing
+
+### 🤖 **AI-Powered Features**
+- **Optional AI Summaries**: Get personalized plan comparisons (opt-in for performance)
+- **Ambetter Assistant**: Specialized AI prompt for health plan guidance
+- **Smart Caching**: Redis-powered caching for fast AI responses
+- **Source Citations**: AI summaries include proper source references
+
+### 👨‍💼 **Admin Management**
+- **Dynamic Index Management**: Create state-specific indices with versioning
+- **Search Curations**: Pin or exclude specific documents for queries
+- **Field Boosting**: Configure search relevance with custom weights
+- **Real-time Monitoring**: Track index health, document counts, and performance
+
+### 📊 **Production-Ready Features**
+- **Vercel Deployment**: Fully deployed and accessible
+- **Elasticsearch Serverless**: Scalable cloud search infrastructure
+- **Performance Optimized**: <500ms search response times
+- **Mobile Responsive**: Works seamlessly on all devices
+
+---
+
+## 🆕 Latest Updates (October 2025)
+
+### 📊 **Enhanced Documentation**
+- **ARCHITECTURE.md**: Added comprehensive Mermaid flowcharts for all system components
+- **DEMO_101_FLOWS.md**: Created simplified flow diagrams perfect for presentations
+- **Visual System Diagrams**: Interactive charts showing data flow, search architecture, and component interactions
+
+### 🔧 **System Improvements**
+- **Dynamic Index Management**: Full admin UI for creating and managing state-specific indices
+- **Search Curations**: Admin controls for pinning/excluding documents from specific queries
+- **Field Boosting**: Configurable search relevance with custom field weights
+- **Performance Optimization**: AI summary opt-in feature for better performance
+
+### 🎨 **User Experience**
+- **Google-like Interface**: Clean, fast search experience with 30 results per page
+- **Smart Deduplication**: Shows unique plans with intelligent result collapsing
+- **Contextual Facets**: Dynamic filtering that adapts to current selections
+- **Mobile Optimization**: Fully responsive design for all devices
+
+### 🚀 **Production Ready**
+- **Vercel Deployment**: Live application with automatic CI/CD
+- **Elasticsearch Serverless**: Scalable cloud infrastructure
+- **Redis Caching**: Fast AI response times with intelligent caching
+- **Multi-State Support**: Texas, Florida, and California health plans indexed
 
 ---
 
@@ -81,18 +130,37 @@ ambetter-project/
 ├── src/
 │   ├── app/                  # Next.js 14 App Router
 │   │   ├── page.tsx          # Homepage (Google-like search)
-│   │   ├── search/           # Search results page
+│   │   ├── search/           # Search results page with filters
+│   │   ├── admin/            # Admin management panel
+│   │   │   ├── login/        # Admin authentication
+│   │   │   ├── AdminTabs.tsx # Tabbed admin interface
+│   │   │   ├── AdminIngest.tsx    # New document ingestion
+│   │   │   ├── AdminIndices.tsx   # Index management
+│   │   │   ├── AdminCurations.tsx # Search curations
+│   │   │   └── AdminBoosts.tsx    # Field boosting
 │   │   └── api/              # API routes
-│   ├── components/           # React components (future)
+│   │       ├── search/       # Hybrid search endpoint
+│   │       ├── facets/       # Dynamic faceting
+│   │       ├── ai-summary/   # AI summary generation
+│   │       └── admin/        # Admin management APIs
 │   └── lib/                  # Utilities and services
-│       └── elasticsearch.ts  # Elasticsearch client
+│       ├── elasticsearch.ts  # Elasticsearch client
+│       └── redis.ts          # Redis caching client
 ├── scripts/
 │   ├── multi-state-processor.js  # PDF extraction & indexing
+│   ├── build-suggester.js    # Autocomplete index builder
 │   └── qa-test.sh            # QA validation scripts
 ├── config/
 │   └── app-config.js         # Centralized configuration
+├── docs/                     # Documentation
+│   ├── README.md             # Documentation index
+│   ├── DEPLOYMENT.md         # Deployment guide
+│   └── archive/              # Historical documentation
 ├── run_multi_state_pipeline.py  # Pipeline orchestrator
-├── PROJECT_MASTER.md         # 📘 Complete documentation
+├── PROJECT_MASTER.md         # 📘 Complete project documentation
+├── ARCHITECTURE.md           # 🏗️ System architecture with flowcharts
+├── DEMO_101_FLOWS.md         # 🎯 Demo flow diagrams
+├── CODING_STANDARDS.md       # Development guidelines
 └── package.json
 ```
 
@@ -100,33 +168,62 @@ ambetter-project/
 
 ## ⚡ Key Features
 
-### Currently Available ✅
-- **Multi-State Search**: Texas and Florida health plans
-- **Hybrid Search**: Keyword-based search with Elasticsearch
-- **AI Summaries**: OpenAI-powered plan summaries
-- **Faceted Filtering**: Filter by state, document type, plan
-- **PDF Access**: Direct links to plan brochures
-- **Responsive Design**: Works on all devices
-- **Ambetter Branding**: Matches official design guidelines
+### 🔍 **Search & Discovery**
+- **Multi-State Coverage**: Texas, Florida, and California health plans
+- **Hybrid Search**: Combines lexical (keyword) and semantic (ELSER) search
+- **Smart Deduplication**: Shows unique plans with intelligent result collapsing
+- **Real-time Facets**: Dynamic filtering with contextual result counts
+- **30 Results per Page**: Google-like pagination for better UX
 
-### Coming Soon 🚧
-- **Semantic Search**: ELSER-powered contextual search
-- **Analytics Dashboard**: Real-time search metrics
-- **Click Tracking**: User behavior analytics
-- **Plan Boosting**: Admin-controlled plan ranking
-- **More States**: California, Georgia, and more
+### 🤖 **AI-Powered Intelligence**
+- **Optional AI Summaries**: Personalized plan comparisons (opt-in for performance)
+- **Ambetter Assistant**: Specialized AI prompt for health plan guidance
+- **Smart Caching**: Redis-powered caching for fast AI responses
+- **Source Citations**: AI summaries include proper source references
+
+### 👨‍💼 **Admin Management**
+- **Dynamic Index Management**: Create and manage state-specific indices
+- **Search Curations**: Pin or exclude documents for specific queries
+- **Field Boosting**: Configure search relevance with custom weights
+- **Real-time Monitoring**: Track index health and performance metrics
+
+### 📱 **User Experience**
+- **Google-like Interface**: Clean, fast search experience
+- **Mobile Responsive**: Works seamlessly on all devices
+- **PDF Access**: Direct links to plan brochures
+- **Contextual Filtering**: Filters adapt to current selections
+
+### 🚀 **Production Ready**
+- **Vercel Deployment**: Live application with automatic CI/CD
+- **Elasticsearch Serverless**: Scalable cloud infrastructure
+- **Performance Optimized**: <500ms search response times
+- **Multi-State Support**: Expandable to additional states
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: Next.js 14, React 18, TypeScript
-- **Backend**: Next.js API Routes, Node.js
-- **Search**: Elasticsearch Serverless
+### **Frontend & Backend**
+- **Framework**: Next.js 14 with App Router
+- **Language**: TypeScript 5.0
+- **UI**: React 18 with inline styles
+- **API**: Next.js API Routes (Serverless Functions)
+
+### **Search & Data**
+- **Search Engine**: Elasticsearch Cloud Serverless
+- **Semantic Search**: ELSER (Elastic's built-in LLM)
+- **Caching**: Upstash Redis
 - **AI**: OpenAI GPT-4o-mini
-- **Data Processing**: Puppeteer, pdftotext
-- **Deployment**: Vercel
-- **Analytics**: RabbitMQ (optional)
+
+### **Data Processing**
+- **Web Crawling**: Puppeteer (Headless Chrome)
+- **PDF Processing**: pdftotext (Poppler Utils)
+- **Orchestration**: Python + Node.js scripts
+
+### **Deployment & Infrastructure**
+- **Platform**: Vercel (Serverless)
+- **Version Control**: Git + GitHub
+- **CI/CD**: Automatic deployment on push
 
 ---
 
@@ -179,6 +276,26 @@ vercel env add OPENAI_API_KEY
 ```
 
 **See [PROJECT_MASTER.md](./PROJECT_MASTER.md#deployment-guide) for detailed deployment instructions.**
+
+---
+
+## 🔗 Quick Links
+
+### **Live Application**
+- **Production**: [ambetter-project.vercel.app](https://ambetter-project.vercel.app)
+- **Admin Panel**: [ambetter-project.vercel.app/admin](https://ambetter-project.vercel.app/admin)
+- **Search Demo**: [ambetter-project.vercel.app/search?q=texas+health+plans](https://ambetter-project.vercel.app/search?q=texas+health+plans)
+
+### **Documentation**
+- **📘 Complete Guide**: [PROJECT_MASTER.md](./PROJECT_MASTER.md)
+- **🏗️ Architecture**: [ARCHITECTURE.md](./ARCHITECTURE.md) (with flowcharts)
+- **🎯 Demo Flows**: [DEMO_101_FLOWS.md](./DEMO_101_FLOWS.md)
+- **📋 Coding Standards**: [CODING_STANDARDS.md](./CODING_STANDARDS.md)
+
+### **Development**
+- **Local Development**: `npm run dev` → [localhost:3000](http://localhost:3000)
+- **Admin Login**: `admin` / `admin`
+- **API Test**: [localhost:3000/api/test-elastic](http://localhost:3000/api/test-elastic)
 
 ---
 
