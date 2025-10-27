@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     // Check authentication
     const authCookie = request.cookies.get('admin_auth')
-    if (!authCookie || authCookie.value !== 'authenticated') {
+    if (!authCookie || authCookie.value !== '1') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
