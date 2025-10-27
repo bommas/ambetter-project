@@ -1,11 +1,14 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import dynamic from 'next/dynamic'
+
 const AdminTabs = dynamic(() => import('./AdminTabs'), { ssr: false })
 
 export default async function AdminHome() {
-  const auth = (await cookies()).get('admin_auth')?.value
-  if (!auth) {
+  const authCookie = (await cookies()).get('admin_auth')
+  
+  // Check if authenticated
+  if (!authCookie || authCookie.value !== '1') {
     redirect('/admin/login')
   }
 

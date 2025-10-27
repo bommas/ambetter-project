@@ -25,7 +25,9 @@ export default function AdminIndices() {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/admin/indices')
+      const response = await fetch('/api/admin/indices', {
+        credentials: 'include' // Send cookies with the request
+      })
       const data = await response.json()
       
       if (!response.ok) {
@@ -45,7 +47,8 @@ export default function AdminIndices() {
     setError('')
     try {
       const response = await fetch(`/api/admin/indices/${encodeURIComponent(indexName)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'include' // Send cookies with the request
       })
       const data = await response.json()
       
@@ -74,7 +77,8 @@ export default function AdminIndices() {
           action: currentlyInAlias ? 'remove' : 'add',
           index: indexName,
           alias: 'health-plans'
-        })
+        }),
+        credentials: 'include' // Send cookies with the request
       })
       const data = await response.json()
       
