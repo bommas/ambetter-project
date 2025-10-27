@@ -69,14 +69,9 @@ export default function SearchResultsPage() {
 
   const loadFacets = async (searchQuery: string) => {
     try {
+      // Static facets based on overall query results - no contextual filtering
       const params = new URLSearchParams()
       params.set('query', searchQuery || '*')
-      if (selectedState) params.set('state', selectedState)
-      if (selectedCounty) params.set('county', selectedCounty)
-      if (selectedDocumentType) params.set('documentType', selectedDocumentType)
-      if (selectedPlan) params.set('plan', selectedPlan)
-      if (selectedPlanId) params.set('planId', selectedPlanId)
-      if (selectedPlanType) params.set('planType', selectedPlanType)
 
       const response = await fetch(`/api/facets?${params.toString()}`)
       const data = await response.json()
@@ -175,8 +170,7 @@ export default function SearchResultsPage() {
       planId: selectedPlanId,
       mode: searchMode
     })
-    // Reload facets with current selections to reflect contextual counts
-    loadFacets(initialQuery)
+    // Static facets - no need to reload
   }
 
   const handlePlanTypeChange = (val: string) => {
@@ -189,8 +183,7 @@ export default function SearchResultsPage() {
       planId: selectedPlanId,
       mode: searchMode
     })
-    // Reload facets with current selections to reflect contextual counts
-    loadFacets(initialQuery)
+    // Static facets - no need to reload
   }
 
   const clearFilters = () => {
@@ -201,7 +194,7 @@ export default function SearchResultsPage() {
     setSelectedPlanId('')
     setCurrentPage(1) // Reset to first page when clearing filters
     performSearch(initialQuery, {})
-    loadFacets(initialQuery)
+    loadFacets(initialQuery) // Only reload facets when clearing filters
   }
 
   const handlePageChange = (page: number) => {
