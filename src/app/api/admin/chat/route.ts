@@ -33,9 +33,9 @@ async function analyzeSearchQueries() {
       aggregations: response.aggregations,
       sampleResults: response.hits.hits.map(hit => ({
         id: hit._id,
-        plan_name: hit._source.plan_name,
-        state: hit._source.state,
-        plan_type: hit._source.plan_type
+        plan_name: (hit._source as any).plan_name,
+        state: (hit._source as any).state,
+        plan_type: (hit._source as any).plan_type
       }))
     }
   } catch (error: any) {
