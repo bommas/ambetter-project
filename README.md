@@ -36,6 +36,164 @@ npm run dev
 
 ---
 
+## 🎮 How to Use the Application
+
+### For End Users
+
+#### **1. Basic Search**
+1. Go to the homepage: [http://localhost:3000](http://localhost:3000)
+2. Enter your search query (e.g., "texas health plans", "bronze tier plans")
+3. Choose your search mode:
+   - **Semantic**: AI-powered search using context and meaning
+   - **Keyword**: Traditional keyword matching
+4. Click "Search" or press Enter
+
+#### **2. Viewing Results**
+- **Results**: Up to 30 results per page with pagination
+- **Filters**: Use the sidebar to filter by:
+  - **State**: TX, FL, NV, CA
+  - **Plan Type**: HMO, EPO, PPO, etc.
+  - **Plan Name**: Specific health plan names
+  - **County**: Texas counties for location-based filtering
+- **AI Summary**: Click "Show AI Summary" to get an AI-powered overview of the top results
+- **PDF Access**: Click on any result to view the full PDF document
+
+#### **3. Understanding Results**
+Each result shows:
+- **Plan Name**: The health plan identifier
+- **Plan ID**: Unique plan code (e.g., TX017, FL016)
+- **Description**: Summary of benefits or coverage
+- **Document Type**: Policy, Summary of Benefits, Evidence of Coverage
+- **Source URL**: Link to the original PDF
+
+#### **4. AI-Powered Search Tips**
+- Use natural language: "Show me dental plans for families"
+- Ask specific questions: "What are the benefits of gold tier plans?"
+- Compare plans: "Compare bronze and silver tier coverage"
+- The AI assistant provides:
+  - Trade-offs between plans
+  - Clarifying questions
+  - Source citations
+  - Eligibility requirements
+
+### For Administrators
+
+#### **1. Accessing Admin Panel**
+1. Navigate to: [http://localhost:3000/admin](http://localhost:3000/admin)
+2. Login with credentials:
+   - Username: `admin`
+   - Password: `admin`
+3. You'll see four main tabs:
+   - **New Documents**: Ingest new health plan documents
+   - **Curations**: Manage search curations (pin/exclude documents)
+   - **Boosting**: Configure search relevance weights
+   - **Indices**: View and manage Elasticsearch indices
+
+#### **2. Ingesting New Documents**
+1. Click the **New Documents** tab
+2. Enter:
+   - **URL**: Ambetter health plan page URL
+     - Examples:
+       - `https://www.ambetterhealth.com/en/tx/2025-brochures-epo/`
+       - `https://www.ambetterhealth.com/en/fl/2025-brochures-epo/`
+   - **State**: Two-letter state code (TX, FL, NV, CA, etc.)
+   - **Version**: Version identifier (e.g., `2025-11`)
+3. Click "Start Ingestion"
+4. Wait for completion (processing includes PDF extraction and indexing)
+5. The system will:
+   - Create a new index: `health-plans-{state}-{version}`
+   - Add it to the `health-plans` alias
+   - Extract and index all PDFs from the URL
+
+#### **3. Managing Search Curations**
+1. Click the **Curations** tab
+2. To create a curation:
+   - Enter a search query
+   - Click "Run Query" to see current results
+   - For each result:
+     - **Pin**: Mark to appear at the top for this query
+     - **Exclude**: Mark to never appear for this query
+   - Click "Save Curation"
+3. To edit/delete curations:
+   - View existing curations in the list
+   - Click "Edit" to modify or "Delete" to remove
+4. Click "Delete All Curations" to reset to default search
+
+#### **4. Configuring Search Boosts**
+1. Click the **Boosting** tab
+2. Adjust field weights for search relevance:
+   - **Text fields** (title, plan_name, extracted_text): Set weight (1-10)
+   - **Numeric fields** (plan_id, county_code): Set boost type:
+     - **None**: No numeric boost
+     - **Log**: Logarithmic boost for recency/relevance
+     - **Sigmoid**: Sigmoid curve for balanced boosting
+3. Click "Save All Boosts" to apply changes
+
+#### **5. Managing Indices**
+1. Click the **Indices** tab
+2. View all `health-plans-*` indices with:
+   - **Document Count**: Number of documents
+   - **Size**: Index storage size
+   - **Health**: green (healthy) / yellow (warning) / red (error)
+   - **Created Date**: When the index was created
+3. Actions:
+   - **Add/Remove Alias**: Control which indices are included in search
+   - **Delete**: Remove an index (protected indices can't be deleted)
+4. Indices with the "ALIAS" badge are part of the main `health-plans` alias and are protected
+
+### Advanced Usage
+
+#### **Semantic vs Keyword Search**
+- **Semantic Search**: Best for natural language queries
+  - Example: "Show me affordable health plans with dental coverage"
+  - Uses ELSER model for context understanding
+  - Returns more relevant, conceptual matches
+
+- **Keyword Search**: Best for exact terms and identifiers
+  - Example: "TX017" or "Bronze tier plans"
+  - Traditional keyword matching
+  - Faster, more predictable results
+
+#### **Search API Usage**
+```bash
+# Basic search
+curl -X POST http://localhost:3000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "texas health plans", "mode": "semantic"}'
+
+# With filters
+curl -X POST http://localhost:3000/api/search \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "bronze tier plans",
+    "filters": {"state": "TX", "plan": "Bronze"},
+    "page": 1,
+    "limit": 20
+  }'
+
+# Get facets
+curl http://localhost:3000/api/facets?query=health+plans
+
+# Get AI summary
+curl -X POST http://localhost:3000/api/ai-summary \
+  -H "Content-Type: application/json" \
+  -d '{"query": "family health plans", "results": [...]}'
+```
+
+#### **Testing the System**
+```bash
+# Health check
+curl http://localhost:3000/api/health
+
+# Elasticsearch connectivity
+curl http://localhost:3000/api/test-elastic
+
+# QA validation
+curl http://localhost:3000/api/qa/data-quality
+```
+
+---
+
 ## 📖 Complete Documentation
 
 ### Core Documents
