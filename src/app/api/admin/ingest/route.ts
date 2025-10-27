@@ -39,20 +39,31 @@ export async function POST(request: NextRequest) {
       })
       console.log(`✅ Created index: ${indexName}`)
 
-      // Add to the health-plans alias
-      await client.indices.updateAliases({
-        body: {
-          actions: [
-            {
-              add: {
-                index: indexName,
-                alias: 'health-plans'
-              }
+      // Check if health-plans index exists (should be an alias, not an index)
+      const healthPlansIndexExists = await client.indices.exists({ index: 'health-plans' })
+      
+      if (!healthPlansIndexExists) {
+        // health-plans doesn't exist as index, can be an alias - add to alias
+        try {
+          await client.indices.updateAliases({
+            body: {
+              actions: [
+                {
+                  add: {
+                    index: indexName,
+                    alias: 'health-plans'
+                  }
+                }
+              ]
             }
-          ]
+          })
+          console.log(`✅ Added ${indexName} to health-plans alias`)
+        } catch (aliasError: any) {
+          console.warn(`⚠️  Could not add to alias (might already exist): ${aliasError.message}`)
         }
-      })
-      console.log(`✅ Added ${indexName} to health-plans alias`)
+      } else {
+        console.warn(`⚠️  health-plans exists as an index, not adding to alias. Please manually manage aliases.`)
+      }
     } else {
       console.log(`⚠️  Index ${indexName} already exists, will update documents`)
     }
