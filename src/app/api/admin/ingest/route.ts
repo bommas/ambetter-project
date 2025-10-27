@@ -39,12 +39,14 @@ export async function POST(request: NextRequest) {
       })
       console.log(`✅ Created index: ${indexName}`)
 
-      // Check if health-plans index exists (should be an alias, not an index)
-      const healthPlansIndexExists = await client.indices.exists({ index: 'health-plans' })
-      
-      if (!healthPlansIndexExists) {
-        // health-plans doesn't exist as index, can be an alias - add to alias
-        try {
+      // Try to add to health-plans alias
+      // First check if health-plans is an alias or index
+      try {
+        const aliasExists = await client.indices.existsAlias({ name: 'health-plans' })
+        const indexExists = await client.indices.exists({ index: 'health-plans' })
+        
+        if (aliasExists && !indexExists) {
+          // health-plans is an alias - add to it
           await client.indices.updateAliases({
             body: {
               actions: [
@@ -58,11 +60,26 @@ export async function POST(request: NextRequest) {
             }
           })
           console.log(`✅ Added ${indexName} to health-plans alias`)
-        } catch (aliasError: any) {
-          console.warn(`⚠️  Could not add to alias (might already exist): ${aliasError.message}`)
+        } else if (indexExists) {
+          console.warn(`⚠️  health-plans exists as an index (conflict), not adding to alias. Please manually manage aliases.`)
+        } else {
+          // No alias or index with this name - create the alias
+          await client.indices.updateAliases({
+            body: {
+              actions: [
+                {
+                  add: {
+                    index: indexName,
+                    alias: 'health-plans'
+                  }
+                }
+              ]
+            }
+          })
+          console.log(`✅ Created and added ${indexName} to health-plans alias`)
         }
-      } else {
-        console.warn(`⚠️  health-plans exists as an index, not adding to alias. Please manually manage aliases.`)
+      } catch (aliasError: any) {
+        console.warn(`⚠️  Could not add to alias: ${aliasError.message}`)
       }
     } else {
       console.log(`⚠️  Index ${indexName} already exists, will update documents`)

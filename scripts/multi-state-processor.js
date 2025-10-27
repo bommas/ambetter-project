@@ -24,7 +24,8 @@ const config = require('../config/app-config');
 const TEMP_DIR = path.resolve(config.pdfProcessing.tempDir);
 const ELASTIC_ENDPOINT = config.elasticsearch.endpoint;
 const ELASTIC_API_KEY = config.elasticsearch.apiKey;
-const ELASTIC_INDEX = config.elasticsearch.indices.healthPlans;
+// Use TARGET_INDEX if provided (for dynamic index creation via admin UI), otherwise use default
+const ELASTIC_INDEX = process.env.TARGET_INDEX || config.elasticsearch.indices.healthPlans;
 
 // Ensure temp directory exists
 fs.ensureDirSync(TEMP_DIR);
