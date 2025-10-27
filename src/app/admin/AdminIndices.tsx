@@ -231,22 +231,38 @@ export default function AdminIndices() {
                 >
                   {index.inAlias ? 'Remove Alias' : 'Add Alias'}
                 </button>
-                <button
-                  onClick={() => setDeleteConfirm(index.name)}
-                  disabled={loading}
-                  style={{
+                {/* Prevent deletion of indices that are in the health-plans alias */}
+                {index.inAlias && (
+                  <span style={{
                     padding: '6px 12px',
-                    background: '#fee2e2',
-                    color: '#b91c1c',
+                    background: '#f3f4f6',
+                    color: '#6b7280',
                     border: 0,
                     borderRadius: 4,
-                    cursor: loading ? 'not-allowed' : 'pointer',
                     fontSize: 12,
-                    fontWeight: 500
-                  }}
-                >
-                  Delete
-                </button>
+                    fontStyle: 'italic'
+                  }}>
+                    Protected
+                  </span>
+                )}
+                {!index.inAlias && (
+                  <button
+                    onClick={() => setDeleteConfirm(index.name)}
+                    disabled={loading}
+                    style={{
+                      padding: '6px 12px',
+                      background: '#fee2e2',
+                      color: '#b91c1c',
+                      border: 0,
+                      borderRadius: 4,
+                      cursor: loading ? 'not-allowed' : 'pointer',
+                      fontSize: 12,
+                      fontWeight: 500
+                    }}
+                  >
+                    Delete
+                  </button>
+                )}
               </div>
             </div>
           ))}
