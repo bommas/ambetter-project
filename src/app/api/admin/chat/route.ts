@@ -49,8 +49,8 @@ async function getIndexStats() {
     const health = await client.cluster.health({ index: 'health-plans' })
     
     return {
-      totalDocs: stats.indices['health-plans']?.total?.docs?.count || 0,
-      size: stats.indices['health-plans']?.total?.store?.size_in_bytes || 0,
+      totalDocs: stats.indices?.['health-plans']?.total?.docs?.count || 0,
+      size: stats.indices?.['health-plans']?.total?.store?.size_in_bytes || 0,
       health: health.health,
       status: health.status
     }
