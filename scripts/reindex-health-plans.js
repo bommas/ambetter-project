@@ -95,7 +95,8 @@ async function main() {
     const reindexResponse = await client.reindex({
       wait_for_completion: false,
       refresh: true,
-      request_timeout: 60000,
+      timeout: '5m',
+      requests_per_second: 100,
       body: {
         source: {
           index: sourceIndex
