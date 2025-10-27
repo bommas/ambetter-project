@@ -86,12 +86,21 @@ export async function POST(request: NextRequest) {
     }
 
     // Run the multi-state processor in single-URL mode with dynamic index
-    const cmd = `SINGLE_URL="${url}" SINGLE_STATE="${state || ''}" TARGET_INDEX="${indexName}" node scripts/multi-state-processor.js`
+    const child = exec('node scripts/multi-state-processor.js', { 
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        SINGLE_URL: url,
+        SINGLE_STATE: state || '',
+        TARGET_INDEX: indexName
+      }
+    })
 
     await new Promise<void>((resolve, reject) => {
-      const child = exec(cmd, { cwd: process.cwd() }, (err) => {
-        if (err) return reject(err)
-        resolve()
+      child.on('error', reject)
+      child.on('exit', (code) => {
+        if (code === 0) resolve()
+        else reject(new Error(`Process exited with code ${code}`))
       })
       child.stdout?.on('data', (d) => process.stdout.write(d))
       child.stderr?.on('data', (d) => process.stderr.write(d))
