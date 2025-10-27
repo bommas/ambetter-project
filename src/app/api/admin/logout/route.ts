@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
-    path: '/admin',
+    path: '/', // Match the login route path
     maxAge: 0
   })
   return res

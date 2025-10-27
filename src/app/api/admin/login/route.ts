@@ -9,12 +9,12 @@ export async function POST(request: NextRequest) {
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
       const res = NextResponse.json({ ok: true })
-      // Set auth cookie scoped to /admin
+      // Set auth cookie available to entire site (required for API routes)
       res.cookies.set('admin_auth', '1', {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
-        path: '/admin',
+        path: '/', // Root path so cookie is available everywhere
         maxAge: 60 * 60 * 8 // 8 hours
       })
       return res
