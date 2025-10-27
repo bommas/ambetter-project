@@ -204,8 +204,10 @@ async function extractTextFromPDF(filepath) {
  */
 async function indexToElasticsearch(document) {
   try {
+    const targetIndex = ELASTIC_INDEX;
+    console.log(`📤 Indexing to: ${targetIndex}`);
     const response = await axios.post(
-      `${ELASTIC_ENDPOINT}/${ELASTIC_INDEX}/_doc`,
+      `${ELASTIC_ENDPOINT}/${targetIndex}/_doc`,
       document,
       {
         headers: {
@@ -214,9 +216,11 @@ async function indexToElasticsearch(document) {
         }
       }
     );
+    console.log(`✅ Successfully indexed to ${targetIndex}, document ID: ${response.data._id}`);
     return response.data;
   } catch (error) {
     console.error('❌ Elasticsearch indexing error:', error.response?.data || error.message);
+    console.error(`❌ Target index was: ${ELASTIC_INDEX}`);
     return null;
   }
 }
