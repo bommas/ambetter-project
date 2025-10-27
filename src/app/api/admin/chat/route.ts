@@ -51,8 +51,8 @@ async function getIndexStats() {
     return {
       totalDocs: stats.indices?.['health-plans']?.total?.docs?.count || 0,
       size: stats.indices?.['health-plans']?.total?.store?.size_in_bytes || 0,
-      health: health.health,
-      status: health.status
+      health: (health as any).health || 'unknown',
+      status: (health as any).status || 'unknown'
     }
   } catch (error: any) {
     return { error: error.message }
