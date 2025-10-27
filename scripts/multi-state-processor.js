@@ -363,48 +363,67 @@ async function processSingleUrl(singleUrl, state) {
   console.log(`${'='.repeat(60)}`)
 
   let totalIndexed = 0
+  
   // Extract PDFs
   const pdfLinks = await extractPDFsFromPage(singleUrl, state || 'NA')
   console.log(`📊 Total PDFs to process from single URL: ${pdfLinks.length}`)
 
-  for (let i = 0; i < pdfLinks.length; i++) {
-    const pdfLink = pdfLinks[i]
-    console.log(`\n[${i + 1}/${pdfLinks.length}] Processing ${pdfLink.planType || 'PDF'}: ${pdfLink.url}`)
+  // If there are PDFs, process them
+  if (pdfLinks.length > 0) {
+    for (let i = 0; i < pdfLinks.length; i++) {
+      const pdfLink = pdfLinks[i]
+      console.log(`\n[${i + 1}/${pdfLinks.length}] Processing ${pdfLink.planType || 'PDF'}: ${pdfLink.url}`)
 
-    try {
-      const filename = path.basename(new URL(pdfLink.url).pathname)
-      const filepath = await downloadPDF(pdfLink.url, filename)
-      if (!filepath) continue
+      try {
+        const filename = path.basename(new URL(pdfLink.url).pathname)
+        const filepath = await downloadPDF(pdfLink.url, filename)
+        if (!filepath) continue
 
-      const extractedText = await extractTextFromPDF(filepath)
-      const document = {
-        title: pdfLink.title || filename,
-        plan_name: pdfLink.title || filename.replace('.pdf', ''),
-        state: state || 'NA',
-        url: pdfLink.url,
-        document_url: pdfLink.url,
-        extracted_text: extractedText,
-        plan_type: (pdfLink.planType || 'brochure').toLowerCase(),
-        pdf: {
-          filename: filename,
-          size: (await fs.stat(filepath)).size
-        },
-        metadata: {
-          source: 'ambetter_brochures_single',
+        const extractedText = await extractTextFromPDF(filepath)
+        const document = {
+          title: pdfLink.title || filename,
+          plan_name: pdfLink.title || filename.replace('.pdf', ''),
           state: state || 'NA',
-          plan_type: pdfLink.planType,
-          file_name: filename,
-          indexed_at: new Date().toISOString()
+          url: pdfLink.url,
+          document_url: pdfLink.url,
+          extracted_text: extractedText,
+          plan_type: (pdfLink.planType || 'brochure').toLowerCase(),
+          pdf: {
+            filename: filename,
+            size: (await fs.stat(filepath)).size
+          },
+          metadata: {
+            source: 'ambetter_brochures_single',
+            state: state || 'NA',
+            plan_type: pdfLink.planType,
+            file_name: filename,
+            indexed_at: new Date().toISOString()
+          }
+        }
+        const result = await indexToElasticsearch(document)
+        if (result) {
+          console.log(`✅ Indexed: ${filename}`)
+          totalIndexed++
+        }
+        await fs.unlink(filepath)
+      } catch (e) {
+        console.error('❌ Error processing PDF:', e.message)
+      }
+    }
+  } else {
+    // No PDFs found, crawl the page content instead
+    console.log('📄 No PDFs found, crawling page content...')
+    try {
+      const contentDoc = await crawlHealthPlansContent(singleUrl, state || 'NA')
+      if (contentDoc) {
+        const result = await indexToElasticsearch(contentDoc)
+        if (result) {
+          console.log(`✅ Indexed page content`)
+          totalIndexed++
         }
       }
-      const result = await indexToElasticsearch(document)
-      if (result) {
-        console.log(`✅ Indexed: ${filename}`)
-        totalIndexed++
-      }
-      await fs.unlink(filepath)
     } catch (e) {
-      console.error('❌ Error processing PDF:', e.message)
+      console.error('❌ Error crawling page content:', e.message)
     }
   }
 
