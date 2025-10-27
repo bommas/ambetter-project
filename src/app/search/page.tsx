@@ -398,7 +398,15 @@ export default function SearchResultsPage() {
                       checked={selectedState === ''}
                       onChange={(e) => {
                         setSelectedState('')
-                        handleFilterChange()
+                        performSearch(initialQuery, {
+                          state: '',
+                          county: selectedCounty,
+                          plan: selectedPlan,
+                          documentType: selectedDocumentType,
+                          planId: selectedPlanId,
+                          mode: searchMode
+                        })
+                        loadFacets(initialQuery)
                       }}
                       style={styles.radioInput}
                     />
@@ -414,8 +422,17 @@ export default function SearchResultsPage() {
                         value={state.value}
                         checked={selectedState === state.value}
                         onChange={(e) => {
-                          setSelectedState(state.value)
-                          setTimeout(handleFilterChange, 0)
+                          const newState = state.value
+                          setSelectedState(newState)
+                          performSearch(initialQuery, {
+                            state: newState,
+                            county: selectedCounty,
+                            plan: selectedPlan,
+                            documentType: selectedDocumentType,
+                            planId: selectedPlanId,
+                            mode: searchMode
+                          })
+                          loadFacets(initialQuery)
                         }}
                         style={styles.radioInput}
                       />
