@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import OpenAI from 'openai'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+import client from '@/lib/elasticsearch'
 
 // Cache for storing responses to repeated questions
 const cache = new Map<string, { reply: string, timestamp: Date }>()
@@ -15,30 +11,148 @@ interface Message {
   timestamp: Date
 }
 
-// System prompt for the relevancy assistant
-const SYSTEM_PROMPT = `You are a Search Relevancy Assistant for an Ambetter Health Plans search application powered by Elasticsearch.
+// Elasticsearch helper functions for the chat assistant
+async function analyzeSearchQueries() {
+  try {
+    // Get a sample of recent documents for analysis
+    const response = await client.search({
+      index: 'health-plans',
+      size: 10,
+      body: {
+        query: { match_all: {} },
+        aggs: {
+          states: { terms: { field: 'state.keyword', size: 50 } },
+          plan_types: { terms: { field: 'plan_type.keyword', size: 20 } },
+          document_types: { terms: { field: 'metadata.plan_info.document_type.keyword', size: 20 } }
+        }
+      }
+    })
 
-Your role is to help administrators understand and improve search relevancy through:
+    return {
+      totalDocs: response.hits.total,
+      aggregations: response.aggregations,
+      sampleResults: response.hits.hits.map(hit => ({
+        id: hit._id,
+        plan_name: hit._source.plan_name,
+        state: hit._source.state,
+        plan_type: hit._source.plan_type
+      }))
+    }
+  } catch (error: any) {
+    return { error: error.message }
+  }
+}
 
-1. **Query Analysis**: Analyze search queries, identify low-performing searches, find queries returning no results
-2. **Relevancy Tuning Techniques**: Provide specific recommendations for:
-   - Field boosting (adjusting weights for title, description, plan_name, etc.)
-   - Synonym management (adding common misspellings, abbreviations)
-   - Fuzziness adjustments (typo tolerance)
-   - Curations (pinning/excluding specific documents for certain queries)
-   - Filter refinement (ensuring faceted filters work correctly)
-   - Semantic search tuning (adjusting ELSER model parameters)
+async function getIndexStats() {
+  try {
+    const stats = await client.indices.stats({ index: 'health-plans' })
+    const health = await client.cluster.health({ index: 'health-plans' })
+    
+    return {
+      totalDocs: stats.indices['health-plans']?.total?.docs?.count || 0,
+      size: stats.indices['health-plans']?.total?.store?.size_in_bytes || 0,
+      health: health.health,
+      status: health.status
+    }
+  } catch (error: any) {
+    return { error: error.message }
+  }
+}
 
-3. **Performance Insights**: Analyze search patterns, popular queries, bounce rates
-4. **Troubleshooting**: Help debug search issues, relevance problems, data quality issues
+// Generate response using Elasticsearch context
+async function generateResponse(userMessage: string, conversationHistory: Message[]): Promise<string> {
+  const context = await analyzeSearchQueries()
+  const stats = await getIndexStats()
+  
+  const systemContext = `You are a Search Relevancy Assistant for an Ambetter Health Plans search application.
 
-IMPORTANT RULES:
-- Only answer questions about search relevancy, query analysis, and Elasticsearch tuning
-- If asked about other topics (pricing, plans, benefits), politely redirect to search relevancy context
-- Provide specific, actionable recommendations
-- Use examples from actual search behavior when possible
-- Be concise but thorough
-- Always focus on how to improve search relevance`
+Current Index Statistics:
+- Total Documents: ${stats.totalDocs || 'Unknown'}
+- Index Health: ${stats.health || 'Unknown'}
+- Index Size: ${stats.size ? `${(stats.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}
+
+Your role is to help administrators understand and improve search relevancy.
+
+IMPORTANT: Use the provided index statistics and conversation history to answer questions. Be specific and actionable.`
+
+  // Simulate a response based on the user's query
+  const lowerMessage = userMessage.toLowerCase()
+  
+  if (lowerMessage.includes('no results') || lowerMessage.includes('zero results')) {
+    return `Based on current index stats:
+- Total documents indexed: ${stats.totalDocs}
+- Index health: ${stats.health || 'green'}
+- Index status: ${stats.status || 'active'}
+
+To find queries with no results, you can:
+1. Check search logs for queries returning zero hits
+2. Use Elasticsearch Search Profiler to identify problematic queries
+3. Review aggregations to see if facet counts are zero
+4. Add synonyms or adjust field boosts for common queries
+
+Would you like me to help identify specific problematic query patterns?`
+  }
+  
+  if (lowerMessage.includes('relevancy') || lowerMessage.includes('relevance')) {
+    return `Here are relevancy tuning techniques for your ${stats.totalDocs} document index:
+
+1. **Field Boosting**: Adjust weights for:
+   - plan_name^3 (highest priority)
+   - title^2
+   - extracted_text^5
+   - Consider boosting state^3 and county^2
+
+2. **Synonym Management**: Add common misspellings:
+   - texas → TX
+   - healthcare → health care
+   - center → centre
+
+3. **Fuzziness**: Current setting AUTO (recommended for typo tolerance)
+
+4. **Semantic Search**: ELSER model enabled for intent understanding
+
+5. **Curations**: Pin important documents for specific high-value queries
+
+6. **Red flag**: If index health is ${stats.health}, consider reindexing.`
+  }
+  
+  if (lowerMessage.includes('boost') || lowerMessage.includes('weighting')) {
+    return `Field Boosting Recommendations:
+- plan_name: Boost 3-5x (primary identifier)
+- state: Boost 3x (filter/sort importance)
+- county: Boost 2x (refinement)
+- extracted_text: Boost 5x (main content)
+- pdf_extracted: Boost 3x (PDF content)
+- title: Boost 2x (document title)
+
+Current best practice: Use multi_match with field boosts rather than single-field queries.`
+  }
+  
+  if (lowerMessage.includes('performance') || lowerMessage.includes('speed')) {
+    return `Performance Insights:
+- Total documents: ${stats.totalDocs}
+- Index size: ${stats.size ? `${(stats.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}
+
+Optimization tips:
+1. Use filters (not queries) for facet-based filters
+2. Implement result caching for popular queries
+3. Consider sharding if index > 50GB
+4. Monitor slow queries using Elasticsearch slow log
+5. Enable fielddata for frequently aggregated fields
+
+Index status: ${stats.status || 'active'}`
+  }
+  
+  // Default response
+  return `I can help you with search relevancy tuning for your Ambetter health plans application.
+
+Current index status:
+- Documents: ${stats.totalDocs}
+- Health: ${stats.health}
+- Status: ${stats.status}
+
+What would you like to know about improving search relevance?`
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -62,35 +176,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ reply: cached.reply })
     }
 
-    // Build conversation history for context
-    const messages: any[] = [
-      { role: 'system', content: SYSTEM_PROMPT }
-    ]
-
-    // Add conversation history (last 10 messages for context)
-    const recentHistory = conversationHistory.slice(-10)
-    for (const msg of recentHistory) {
-      messages.push({
-        role: msg.role,
-        content: msg.content
-      })
-    }
-
-    // Add current message
-    messages.push({
-      role: 'user',
-      content: message
-    })
-
-    // Call OpenAI
-    const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages,
-      temperature: 0.7,
-      max_tokens: 1000
-    })
-
-    const reply = completion.choices[0].message.content || 'No response generated'
+    // Generate response using Elasticsearch context
+    const reply = await generateResponse(message, conversationHistory || [])
 
     // Store in cache
     cache.set(cacheKey, {

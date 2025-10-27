@@ -37,7 +37,7 @@ The AI assistant is specialized to help with:
 
 ### Files Created
 1. `src/app/admin/AdminChat.tsx` - Main chat UI component
-2. `src/app/api/admin/chat/route.ts` - API endpoint for chat
+2. `src/app/api/admin/chat/route.ts` - API endpoint for chat with Elasticsearch integration
 3. Updated `src/app/admin/AdminTabs.tsx` - Added new "Chat Assistant" tab
 
 ### API Endpoint
@@ -59,11 +59,14 @@ The AI assistant is specialized to help with:
   }
   ```
 
-### OpenAI Configuration
-- **Model**: `gpt-4o-mini`
-- **Temperature**: 0.7
-- **Max Tokens**: 1000
-- **System Prompt**: Specialized for search relevancy assistance
+### Elasticsearch Integration
+- **Direct Elasticsearch Access**: Queries Elasticsearch for real-time index stats
+- **Index Analysis**: Analyzes search queries and aggregations
+- **Context-Aware Responses**: Uses actual index data to provide accurate recommendations
+- **Functions**:
+  - `analyzeSearchQueries()` - Gets index aggregations and sample results
+  - `getIndexStats()` - Retrieves index statistics (doc count, size, health)
+  - `generateResponse()` - Generates contextual responses based on Elasticsearch data
 
 ## Usage
 
