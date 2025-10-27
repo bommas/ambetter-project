@@ -7,9 +7,10 @@ const AdminIngest = dynamic(() => import('./AdminIngest'), { ssr: false })
 const AdminCurations = dynamic(() => import('./AdminCurations'), { ssr: false })
 const AdminBoosts = dynamic(() => import('./AdminBoosts'), { ssr: false })
 const AdminIndices = dynamic(() => import('./AdminIndices'), { ssr: false })
+const AdminChat = dynamic(() => import('./AdminChat'), { ssr: false })
 
 export default function AdminTabs() {
-  const [active, setActive] = useState<'ingest' | 'curations' | 'boosts' | 'indices'>('ingest')
+  const [active, setActive] = useState<'ingest' | 'indices' | 'curations' | 'boosts' | 'chat'>('ingest')
 
   const tabStyle = (key: string) => ({
     padding: '8px 12px',
@@ -26,6 +27,7 @@ export default function AdminTabs() {
         <div style={tabStyle('indices')} onClick={() => setActive('indices')}>Indices</div>
         <div style={tabStyle('curations')} onClick={() => setActive('curations')}>Curations</div>
         <div style={tabStyle('boosts')} onClick={() => setActive('boosts')}>Boosting</div>
+        <div style={tabStyle('chat')} onClick={() => setActive('chat')}>Chat Assistant</div>
       </div>
 
       {active === 'ingest' && (
@@ -55,6 +57,13 @@ export default function AdminTabs() {
         <section>
           <h2 style={{ fontSize: 16, marginBottom: 8 }}>Boosting</h2>
           <AdminBoosts />
+        </section>
+      )}
+
+      {active === 'chat' && (
+        <section>
+          <h2 style={{ fontSize: 16, marginBottom: 8 }}>Search Relevancy Assistant</h2>
+          <AdminChat />
         </section>
       )}
     </div>
