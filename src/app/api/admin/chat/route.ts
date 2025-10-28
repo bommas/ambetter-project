@@ -93,21 +93,27 @@ async function testQueriesForNoResults() {
 
 async function getIndexStats() {
   try {
+    console.log('🔍 getIndexStats: Starting...')
     // Get document count from search - use the alias
     const countResponse = await client.count({ index: 'health-plans' })
+    console.log('📊 countResponse:', JSON.stringify(countResponse, null, 2))
     const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
+    console.log('📈 totalDocs extracted:', totalDocs)
     
     // Get cluster health - use empty string for index parameter to get overall health
     const healthResponse = await client.cluster.health()
+    console.log('💚 healthResponse:', JSON.stringify(healthResponse, null, 2))
     
-    return {
+    const stats = {
       totalDocs: totalDocs || 0,
       size: 0, // Size not critical for this use case
       health: healthResponse.health || 'unknown',
       status: healthResponse.status || 'unknown'
     }
+    console.log('✅ Returning stats:', stats)
+    return stats
   } catch (error: any) {
-    console.error('getIndexStats error:', error.message)
+    console.error('❌ getIndexStats error:', error.message, error.stack)
     return { 
       totalDocs: 0, 
       size: 0,
