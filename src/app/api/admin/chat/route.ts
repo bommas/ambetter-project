@@ -173,10 +173,36 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
     const data = await response.json()
     console.log('✅ MCP Response data:', JSON.stringify(data, null, 2))
     
-    // Handle response format
-    if (data.result && data.result.content) {
-      return data.result.content[0]?.text || JSON.stringify(data.result)
+    // Handle response format - try to extract meaningful text
+    if (data.result) {
+      // If result has content array with text
+      if (data.result.content && Array.isArray(data.result.content)) {
+        const textContent = data.result.content.find((c: any) => c.type === 'text' || c.text)
+        if (textContent?.text) {
+          return textContent.text
+        }
+      }
+      
+      // If result is a JSON string (from platform_core_search)
+      if (typeof data.result === 'string') {
+        const parsed = JSON.parse(data.result)
+        if (parsed.results && Array.isArray(parsed.results)) {
+          const summary = parsed.results
+            .map((r: any) => {
+              if (r.data?.content?.highlights) {
+                return r.data.content.highlights.slice(0, 3).join(' | ')
+              }
+              return null
+            })
+            .filter(Boolean)
+            .slice(0, 5)
+            .join('\n\n')
+          return `Found ${parsed.results.length} results:\n${summary}`
+        }
+        return data.result
+      }
     }
+    
     return JSON.stringify(data.result || data)
   } catch (error: any) {
     console.error('❌ MCP Agent call error:', error)
