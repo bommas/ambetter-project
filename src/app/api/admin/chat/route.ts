@@ -196,7 +196,6 @@ Your role is to help administrators understand and improve search relevancy.
 IMPORTANT: Use the provided index statistics and conversation history to answer questions. Be specific and actionable.`
 
   // Simulate a response based on the user's query
-  const lowerMessage = userMessage.toLowerCase()
   
   if (lowerMessage.includes('no results') || lowerMessage.includes('zero results') || lowerMessage.includes('queries with no results')) {
     const testResults = await testQueriesForNoResults()
