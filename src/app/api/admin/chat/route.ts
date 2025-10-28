@@ -375,146 +375,62 @@ async function callMCPAgent(agentId: string, message: string) {
   }
 }
 
-// Generate response using Elastic Agent Builder via MCP
+// Generate response using OpenAI to simulate the Relevancy Agent behavior
 async function generateResponse(userMessage: string, conversationHistory: Message[]): Promise<string> {
   const stats = await getIndexStats()
   
-  // Try to use Elastic Agent Builder MCP first - call the Relevancy Agent
-  const AGENT_ID = '1' // Relevancy Agent
+  // Analyze the user's question to understand intent
+  const lowerMessage = userMessage.toLowerCase()
   
-  // Call the Relevancy Agent via MCP
-  const mcpResponse = await callMCPAgent(AGENT_ID, userMessage)
+  // Build system prompt that mimics the Relevancy Agent instructions
+  const systemPrompt = `You are an Elasticsearch administrator and know everything about relevance tuning of ambetter health-plans indexes and aliases. 
+
+**IMPORTANT RULES:**
+- Focus on relevance tuning topics (weights, boosts, synonyms, scores, query rules, RRF)
+- DO NOT show code or queries to the user - explain in natural language
+- Provide actionable advice on how to improve search relevance
+- Your answers should be conversational and helpful
+- If asked about data quality, provide insights without showing queries
+
+Current index statistics:
+- Total Documents: ${stats.totalDocs}
+- Index Health: ${stats.health}
+- Status: ${stats.status}`
   
-  // If agent returns a response, use it
-  if (mcpResponse && typeof mcpResponse === 'string') {
-    // Check if it's raw JSON and needs formatting
-    if (mcpResponse.startsWith('{"results":')) {
-      console.log('🔧 Detected raw JSON in MCP response, formatting...')
-      try {
-        const parsed = JSON.parse(mcpResponse)
-        // Extract and format the results
-        if (parsed.results && Array.isArray(parsed.results)) {
-          const formatted = parsed.results
-            .map((r: any, idx: number) => {
-              if (r.type === 'resource' && r.data?.content?.highlights) {
-                const highlights = r.data.content.highlights
-                  .slice(0, 2)
-                  .map((h: string) => h.replace(/<em>|<\/em>/g, ''))
-                  .join('; ')
-                return `Document ${idx + 1}: ${highlights}`
-              }
-              if (r.type === 'query' && r.data?.esql) {
-                return `Query: ${r.data.esql}`
-              }
-              if (r.type === 'tabular_data' && r.data?.values) {
-                return `Table data: ${r.data.values[0]?.join(', ') || 'No results'}`
-              }
-              return null
-            })
-            .filter(Boolean)
-            .join('\n\n')
-          
-          return `Found ${parsed.results.length} results:\n\n${formatted}`
+  // Use OpenAI to generate a response with the Relevancy Agent persona
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const generatedReply = data.choices[0]?.message?.content
+        if (generatedReply) {
+          return generatedReply
         }
-      } catch (e) {
-        console.error('Failed to parse MCP response:', e)
       }
+    } catch (error) {
+      console.error('OpenAI error:', error)
+      // Fall through to default response
     }
-    return mcpResponse
   }
   
-  const systemContext = `You are a Search Relevancy Assistant for an Ambetter Health Plans search application.
-
-Current Index Statistics:
-- Total Documents: ${stats.totalDocs || 'Unknown'}
-- Index Health: ${stats.health || 'Unknown'}
-- Index Size: ${stats.size ? `${(stats.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}
-
-Your role is to help administrators understand and improve search relevancy.
-
-IMPORTANT: Use the provided index statistics and conversation history to answer questions. Be specific and actionable.`
-
-  // Simulate a response based on the user's query
-  
-  if (lowerMessage.includes('no results') || lowerMessage.includes('zero results') || lowerMessage.includes('queries with no results')) {
-    const testResults = await testQueriesForNoResults()
-    const noResultQueries = testResults.filter(r => r.hits === 0)
-    
-    return `Based on current index stats:
-- Total documents indexed: ${stats.totalDocs}
-- Index health: ${stats.health || 'green'}
-- Index status: ${stats.status || 'active'}
-
-I tested some sample queries and found ${noResultQueries.length} queries with zero results:
-${noResultQueries.length > 0 ? noResultQueries.map(r => `- "${r.query}" (0 hits)`).join('\n') : '- None detected in sample test queries'}
-
-To find actual queries with no results in production:
-1. **Check search logs** - Look for queries returning 0 hits
-2. **Use Elasticsearch Search Profiler** - Identify problematic queries
-3. **Monitor aggregations** - Check if facet counts are zero
-4. **Add synonyms** - For common misspellings (e.g., "healthcare" → "health care")
-5. **Adjust field boosts** - Increase weights for more important fields
-
-To fix no-result queries:
-- Add synonyms for common terms
-- Enable more aggressive fuzziness
-- Broaden field coverage in multi_match
-- Consider using query_string with wildcards for partial matches
-
-Current test queries returning results: ${testResults.filter(r => r.hits > 0).length}/${testResults.length}`
-  }
-  
-  if (lowerMessage.includes('relevancy') || lowerMessage.includes('relevance')) {
-    return `Here are relevancy tuning techniques for your ${stats.totalDocs} document index:
-
-1. **Field Boosting**: Adjust weights for:
-   - plan_name^3 (highest priority)
-   - title^2
-   - extracted_text^5
-   - Consider boosting state^3 and county^2
-
-2. **Synonym Management**: Add common misspellings:
-   - texas → TX
-   - healthcare → health care
-   - center → centre
-
-3. **Fuzziness**: Current setting AUTO (recommended for typo tolerance)
-
-4. **Semantic Search**: ELSER model enabled for intent understanding
-
-5. **Curations**: Pin important documents for specific high-value queries
-
-6. **Red flag**: If index health is ${stats.health}, consider reindexing.`
-  }
-  
-  if (lowerMessage.includes('boost') || lowerMessage.includes('weighting')) {
-    return `Field Boosting Recommendations:
-- plan_name: Boost 3-5x (primary identifier)
-- state: Boost 3x (filter/sort importance)
-- county: Boost 2x (refinement)
-- extracted_text: Boost 5x (main content)
-- pdf_extracted: Boost 3x (PDF content)
-- title: Boost 2x (document title)
-
-Current best practice: Use multi_match with field boosts rather than single-field queries.`
-  }
-  
-  if (lowerMessage.includes('performance') || lowerMessage.includes('speed')) {
-    return `Performance Insights:
-- Total documents: ${stats.totalDocs}
-- Index size: ${stats.size ? `${(stats.size / 1024 / 1024).toFixed(2)} MB` : 'Unknown'}
-
-Optimization tips:
-1. Use filters (not queries) for facet-based filters
-2. Implement result caching for popular queries
-3. Consider sharding if index > 50GB
-4. Monitor slow queries using Elasticsearch slow log
-5. Enable fielddata for frequently aggregated fields
-
-Index status: ${stats.status || 'active'}`
-  }
-  
-  // Default response
+  // Default response if OpenAI fails
   return `I can help you with search relevancy tuning for your Ambetter health plans application.
 
 Current index status:
@@ -522,7 +438,14 @@ Current index status:
 - Health: ${stats.health || 'Unknown'}
 - Status: ${stats.status || 'Unknown'}
 
-What would you like to know about improving search relevance?`
+Ask me about:
+- Relevance tuning techniques
+- Field boosting strategies
+- Query optimization
+- Performance improvements
+- Data quality analysis
+
+What would you like to know?`
 }
 
 export async function POST(request: NextRequest) {
