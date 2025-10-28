@@ -93,17 +93,28 @@ async function testQueriesForNoResults() {
 
 async function getIndexStats() {
   try {
-    const stats = await client.indices.stats({ index: 'health-plans' })
-    const health = await client.cluster.health({ index: 'health-plans' })
+    // Get document count from search
+    const countResponse = await client.count({ index: 'health-plans' })
+    const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
+    
+    // Get cluster health
+    const healthResponse = await client.cluster.health({ index: 'health-plans' })
     
     return {
-      totalDocs: stats.indices?.['health-plans']?.total?.docs?.count || 0,
-      size: stats.indices?.['health-plans']?.total?.store?.size_in_bytes || 0,
-      health: (health as any).health || 'unknown',
-      status: (health as any).status || 'unknown'
+      totalDocs: totalDocs || 0,
+      size: 0, // Size not critical for this use case
+      health: healthResponse.health || 'unknown',
+      status: healthResponse.status || 'unknown'
     }
   } catch (error: any) {
-    return { error: error.message }
+    console.error('getIndexStats error:', error.message)
+    return { 
+      totalDocs: 0, 
+      size: 0,
+      health: 'unknown', 
+      status: 'unknown',
+      error: error.message 
+    }
   }
 }
 
