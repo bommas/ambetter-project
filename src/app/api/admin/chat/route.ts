@@ -93,8 +93,8 @@ async function testQueriesForNoResults() {
 
 async function getIndexStats() {
   try {
-    // Get document count from search
-    const countResponse = await client.count({ index: 'health-plans*' })
+    // Get document count from search - use the alias
+    const countResponse = await client.count({ index: 'health-plans' })
     const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
     
     // Get cluster health - use empty string for index parameter to get overall health
