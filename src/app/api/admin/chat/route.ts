@@ -94,21 +94,19 @@ async function testQueriesForNoResults() {
 async function getIndexStats() {
   try {
     console.log('🔍 getIndexStats: Starting...')
-    // Get document count from search - use the alias
+    // Get document count from the alias
     const countResponse = await client.count({ index: 'health-plans' })
     console.log('📊 countResponse:', JSON.stringify(countResponse, null, 2))
     const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
     console.log('📈 totalDocs extracted:', totalDocs)
     
-    // Get cluster health - don't pass index parameter at all
-    const healthResponse = await client.cluster.health({})
-    console.log('💚 healthResponse:', JSON.stringify(healthResponse, null, 2))
-    
+    // Skip cluster.health() as it's not available in Elasticsearch Serverless
+    // Just return document count
     const stats = {
       totalDocs: totalDocs || 0,
       size: 0, // Size not critical for this use case
-      health: healthResponse.health || 'unknown',
-      status: healthResponse.status || 'unknown'
+      health: 'healthy', // Assume healthy if we can query
+      status: 'active' // Assume active if we can query
     }
     console.log('✅ Returning stats:', stats)
     return stats
