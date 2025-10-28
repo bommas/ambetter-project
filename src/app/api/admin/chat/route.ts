@@ -181,14 +181,18 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
         
         data.result.results.forEach((r: any, index: number) => {
           // Handle tabular data from ES|QL
-          if (r.type === 'tabular_data' && r.data?.values) {
+          if (r.type === 'tabular_data' && r.data) {
             const columns = r.data.columns?.map((c: any) => c.name).join(', ') || ''
-            const rows = r.data.values.slice(0, 5).map((row: any[]) => row.join(' | '))
+            const rows = r.data.values?.slice(0, 5).map((row: any[]) => row.join(' | ')) || []
             
-            if (columns) {
+            if (columns && rows.length > 0) {
               responseText += `**Query Results:**\nColumns: ${columns}\n`
+              responseText += rows.join('\n') + '\n\n'
+            } else if (columns && rows.length === 0) {
+              responseText += `**Query Results:**\nColumns: ${columns}\nNo results found.\n\n`
+            } else if (r.data.query) {
+              responseText += `**Query Executed:** ${r.data.query}\nNo matching data found.\n\n`
             }
-            responseText += rows.join('\n') + '\n\n'
           }
           
           // Handle search results with highlights
@@ -202,13 +206,15 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
           
           // Handle query info
           if (r.type === 'query' && r.data?.esql) {
-            responseText += `**Query Executed:** ${r.data.esql}\n\n`
+            responseText += `**ES|QL Query:** ${r.data.esql}\n`
           }
         })
         
         if (responseText.trim()) {
-          // Try to make it more natural by adding context
-          return `I ran a query for you. Here's what I found:\n\n${responseText.trim()}\n\nNote: These are the raw query results. Would you like me to summarize this information in a more natural format?`
+          // Make it more natural with proper formatting
+          const lines = responseText.trim().split('\n')
+          const summary = lines.filter(line => line.trim()).slice(0, 10).join('\n')
+          return `Query executed successfully.\n\n${summary}`
         }
       }
       
