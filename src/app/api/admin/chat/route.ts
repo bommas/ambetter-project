@@ -110,7 +110,10 @@ async function getIndexStats() {
 // MCP Agent Builder integration
 async function callMCPAgent(agentName: string, query: string, context?: any) {
   try {
-    // MCP servers require Accept header for JSON
+    // Generate unique request ID
+    const requestId = Math.random().toString(36).substring(7)
+    
+    // MCP servers require Accept header for JSON and JSON-RPC 2.0 format
     const response = await fetch(MCP_SERVER_URL, {
       method: 'POST',
       headers: {
@@ -119,6 +122,8 @@ async function callMCPAgent(agentName: string, query: string, context?: any) {
         'Authorization': `ApiKey ${ELASTIC_API_KEY}`
       },
       body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: requestId,
         method: 'tools/call',
         params: {
           name: agentName,
