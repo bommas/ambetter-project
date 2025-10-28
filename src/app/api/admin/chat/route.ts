@@ -71,9 +71,12 @@ async function testQueriesForNoResults() {
         }
       })
       
+      const hitCount = typeof response.hits.total === 'number' 
+        ? response.hits.total 
+        : (response.hits.total?.value || 0)
       results.push({
         query,
-        hits: typeof response.hits.total === 'number' ? response.hits.total : response.hits.total.value
+        hits: hitCount
       })
     } catch (error) {
       // Skip errors
