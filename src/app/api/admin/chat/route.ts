@@ -43,6 +43,46 @@ async function analyzeSearchQueries() {
   }
 }
 
+async function testQueriesForNoResults() {
+  // Test some common queries that might return no results
+  const testQueries = [
+    'nonexistentplan123',
+    'invalidstate999',
+    'zzzzzzz',
+    'test123456'
+  ]
+  
+  const results: Array<{ query: string, hits: number }> = []
+  
+  for (const query of testQueries) {
+    try {
+      const response = await client.search({
+        index: 'health-plans',
+        size: 0,
+        body: {
+          query: {
+            multi_match: {
+              query,
+              fields: ['title^2', 'plan_name^2', 'extracted_text^5'],
+              type: 'best_fields',
+              fuzziness: 'AUTO'
+            }
+          }
+        }
+      })
+      
+      results.push({
+        query,
+        hits: typeof response.hits.total === 'number' ? response.hits.total : response.hits.total.value
+      })
+    } catch (error) {
+      // Skip errors
+    }
+  }
+  
+  return results
+}
+
 async function getIndexStats() {
   try {
     const stats = await client.indices.stats({ index: 'health-plans' })
@@ -78,19 +118,32 @@ IMPORTANT: Use the provided index statistics and conversation history to answer 
   // Simulate a response based on the user's query
   const lowerMessage = userMessage.toLowerCase()
   
-  if (lowerMessage.includes('no results') || lowerMessage.includes('zero results')) {
+  if (lowerMessage.includes('no results') || lowerMessage.includes('zero results') || lowerMessage.includes('queries with no results')) {
+    const testResults = await testQueriesForNoResults()
+    const noResultQueries = testResults.filter(r => r.hits === 0)
+    
     return `Based on current index stats:
 - Total documents indexed: ${stats.totalDocs}
 - Index health: ${stats.health || 'green'}
 - Index status: ${stats.status || 'active'}
 
-To find queries with no results, you can:
-1. Check search logs for queries returning zero hits
-2. Use Elasticsearch Search Profiler to identify problematic queries
-3. Review aggregations to see if facet counts are zero
-4. Add synonyms or adjust field boosts for common queries
+I tested some sample queries and found ${noResultQueries.length} queries with zero results:
+${noResultQueries.length > 0 ? noResultQueries.map(r => `- "${r.query}" (0 hits)`).join('\n') : '- None detected in sample test queries'}
 
-Would you like me to help identify specific problematic query patterns?`
+To find actual queries with no results in production:
+1. **Check search logs** - Look for queries returning 0 hits
+2. **Use Elasticsearch Search Profiler** - Identify problematic queries
+3. **Monitor aggregations** - Check if facet counts are zero
+4. **Add synonyms** - For common misspellings (e.g., "healthcare" → "health care")
+5. **Adjust field boosts** - Increase weights for more important fields
+
+To fix no-result queries:
+- Add synonyms for common terms
+- Enable more aggressive fuzziness
+- Broaden field coverage in multi_match
+- Consider using query_string with wildcards for partial matches
+
+Current test queries returning results: ${testResults.filter(r => r.hits > 0).length}/${testResults.length}`
   }
   
   if (lowerMessage.includes('relevancy') || lowerMessage.includes('relevance')) {
