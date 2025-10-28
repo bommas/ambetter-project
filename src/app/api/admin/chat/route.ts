@@ -97,7 +97,7 @@ async function getIndexStats() {
     // Get document count from the alias
     const countResponse = await client.count({ index: 'health-plans' })
     console.log('📊 countResponse:', JSON.stringify(countResponse, null, 2))
-    const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
+    const totalDocs = (countResponse as any).count
     console.log('📈 totalDocs extracted:', totalDocs)
     
     // Skip cluster.health() as it's not available in Elasticsearch Serverless
