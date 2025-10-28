@@ -20,9 +20,9 @@ interface Message {
 async function analyzeSearchQueries() {
   try {
     // Get a sample of recent documents for analysis
-    const response = await client.search({
-      index: 'health_plans*',
-      size: 10,
+      const response = await client.search({
+        index: 'health-plans*',
+        size: 10,
       body: {
         query: { match_all: {} },
         aggs: {
@@ -62,7 +62,7 @@ async function testQueriesForNoResults() {
   for (const query of testQueries) {
     try {
       const response = await client.search({
-        index: 'health_plans*',
+        index: 'health-plans*',
         size: 0,
         body: {
           query: {
@@ -94,11 +94,11 @@ async function testQueriesForNoResults() {
 async function getIndexStats() {
   try {
     // Get document count from search
-    const countResponse = await client.count({ index: 'health_plans*' })
+    const countResponse = await client.count({ index: 'health-plans*' })
     const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
     
     // Get cluster health
-    const healthResponse = await client.cluster.health({ index: 'health_plans*' })
+    const healthResponse = await client.cluster.health({ index: 'health-plans*' })
     
     return {
       totalDocs: totalDocs || 0,
