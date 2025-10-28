@@ -263,13 +263,38 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
             }
           })
           
-          // Create context for OpenAI
-          const fullContext = `${responseText}\n\nActual Results:\n${actualResults}`
+          // Create context for OpenAI - include resource results too
+          const resourceResults = data.result.results
+            .filter((r: any) => r.type === 'resource')
+            .map((r: any, idx: number) => {
+              if (r.data?.content?.highlights) {
+                const cleanH = r.data.content.highlights
+                  .slice(0, 2)
+                  .map((h: string) => h.replace(/<em>|<\/em>/g, ''))
+                  .join('; ')
+                return `Doc ${idx + 1}: ${cleanH}`
+              }
+              return null
+            })
+            .filter(Boolean)
+            .join('\n')
+          
+          const fullContext = `${responseText}\n\nActual Results:\n${actualResults}\n\nDocuments Found:\n${resourceResults}`
+          
+          console.log('🔍 Attempting OpenAI summarization for:', fullContext.substring(0, 300))
           
           // Summarize using OpenAI to make it natural language
           const naturalSummary = await summarizeWithOpenAI(fullContext.trim())
           if (naturalSummary) {
+            console.log('✅ OpenAI summarization succeeded')
             return naturalSummary
+          }
+          
+          console.log('⚠️ OpenAI summarization failed, using fallback')
+          
+          // Format as human-readable summary even without OpenAI
+          if (resourceResults) {
+            return `Found ${data.result.results.filter((r: any) => r.type === 'resource').length} relevant documents in your search results:\n\n${resourceResults}\n\nThese documents contain information related to your query.`
           }
           
           // Fallback to formatted output
@@ -311,7 +336,10 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
       }
     }
     
-    return JSON.stringify(data.result || data)
+    // Return formatted JSON if summarization didn't happen
+    const rawResult = JSON.stringify(data.result || data)
+    console.log('⚠️ Returning raw JSON result (no summarization):', rawResult.substring(0, 200))
+    return rawResult
   } catch (error: any) {
     console.error('❌ MCP Agent call error:', error)
     return null
