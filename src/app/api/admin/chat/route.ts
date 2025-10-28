@@ -123,10 +123,33 @@ async function getIndexStats() {
 }
 
 // MCP Agent Builder integration
-async function callMCPAgent(agentName: string, query: string, context?: any) {
+async function callMCPAgent(toolName: string, query: string, params?: any) {
   try {
     // Generate unique request ID
     const requestId = Math.random().toString(36).substring(7)
+    
+    // Build arguments based on tool
+    let arguments: any = {}
+    if (toolName === 'platform_core_search') {
+      arguments = { query, index: params?.index }
+    } else if (toolName === 'platform_core_list_indices') {
+      arguments = { pattern: params?.index || query }
+    } else {
+      arguments = { query }
+    }
+    
+    const requestBody = {
+      jsonrpc: '2.0',
+      id: requestId,
+      method: 'tools/call',
+      params: {
+        name: toolName,
+        arguments
+      }
+    }
+    
+    console.log('📤 MCP Request:', JSON.stringify(requestBody, null, 2))
+    console.log('🔗 MCP Server URL:', MCP_SERVER_URL)
     
     // MCP servers require Accept header for JSON and JSON-RPC 2.0 format
     const response = await fetch(MCP_SERVER_URL, {
@@ -136,30 +159,27 @@ async function callMCPAgent(agentName: string, query: string, context?: any) {
         'Accept': 'application/json',
         'Authorization': `ApiKey ${ELASTIC_API_KEY}`
       },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        id: requestId,
-        method: 'tools/call',
-        params: {
-          name: agentName,
-          arguments: {
-            user_message: query,
-            context: context || {}
-          }
-        }
-      })
+      body: JSON.stringify(requestBody)
     })
+
+    console.log('📥 MCP Response status:', response.status, response.statusText)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error(`MCP Server returned ${response.status}: ${errorText}`)
+      console.error(`❌ MCP Server returned ${response.status}: ${errorText}`)
       return null
     }
 
     const data = await response.json()
-    return data.result?.content?.[0]?.text || data.response || data
+    console.log('✅ MCP Response data:', JSON.stringify(data, null, 2))
+    
+    // Handle response format
+    if (data.result && data.result.content) {
+      return data.result.content[0]?.text || JSON.stringify(data.result)
+    }
+    return JSON.stringify(data.result || data)
   } catch (error: any) {
-    console.error('MCP Agent call error:', error)
+    console.error('❌ MCP Agent call error:', error)
     return null
   }
 }
@@ -193,19 +213,28 @@ async function generateResponse(userMessage: string, conversationHistory: Messag
   // Try to use Elastic Agent Builder MCP first
   const lowerMessage = userMessage.toLowerCase()
   
-  // Determine which agent to use based on query
-  let agentName = 'Elastic AI Agent' // Default
-  if (lowerMessage.includes('relevancy') || lowerMessage.includes('relevance') || 
-      lowerMessage.includes('boost') || lowerMessage.includes('tuning') ||
-      lowerMessage.includes('query analysis') || lowerMessage.includes('search optimization')) {
-    agentName = 'Relevancy Agent'
+  // Determine which tool to use based on query
+  let toolName = 'platform_core_search' // Default
+  let toolQuery = userMessage
+  let indexParam = 'health-plans'
+  
+  if (lowerMessage.includes('show') || lowerMessage.includes('list') || lowerMessage.includes('find')) {
+    // Use direct search queries
+    toolName = 'platform_core_search'
+    indexParam = 'health-plans'
+  } else if (lowerMessage.includes('index') || lowerMessage.includes('indices')) {
+    toolName = 'platform_core_list_indices'
+    toolQuery = 'health-plans'
   }
   
-  // Call MCP Agent Builder
-  const mcpResponse = await callMCPAgent(agentName, userMessage, {
-    indexStats: stats,
-    aggregations: context.aggregations,
-    sampleResults: (context as any).sampleResults
+  // Call MCP Agent Builder with the right tool
+  const mcpResponse = await callMCPAgent(toolName, toolQuery, {
+    index: indexParam,
+    context: JSON.stringify({
+      stats,
+      aggregations: context.aggregations,
+      sampleResults: (context as any).sampleResults
+    })
   })
   
   // If MCP agent returns a response, use it
