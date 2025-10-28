@@ -401,6 +401,39 @@ async function generateResponse(userMessage: string, conversationHistory: Messag
   
   // If MCP agent returns a response, use it
   if (mcpResponse && typeof mcpResponse === 'string') {
+    // Check if it's raw JSON and needs formatting
+    if (mcpResponse.startsWith('{"results":')) {
+      console.log('🔧 Detected raw JSON in MCP response, formatting...')
+      try {
+        const parsed = JSON.parse(mcpResponse)
+        // Extract and format the results
+        if (parsed.results && Array.isArray(parsed.results)) {
+          const formatted = parsed.results
+            .map((r: any, idx: number) => {
+              if (r.type === 'resource' && r.data?.content?.highlights) {
+                const highlights = r.data.content.highlights
+                  .slice(0, 2)
+                  .map((h: string) => h.replace(/<em>|<\/em>/g, ''))
+                  .join('; ')
+                return `Document ${idx + 1}: ${highlights}`
+              }
+              if (r.type === 'query' && r.data?.esql) {
+                return `Query: ${r.data.esql}`
+              }
+              if (r.type === 'tabular_data' && r.data?.values) {
+                return `Table data: ${r.data.values[0]?.join(', ') || 'No results'}`
+              }
+              return null
+            })
+            .filter(Boolean)
+            .join('\n\n')
+          
+          return `Found ${parsed.results.length} results:\n\n${formatted}`
+        }
+      } catch (e) {
+        console.error('Failed to parse MCP response:', e)
+      }
+    }
     return mcpResponse
   }
   
