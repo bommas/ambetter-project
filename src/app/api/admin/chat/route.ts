@@ -6,13 +6,6 @@ const ELASTIC_ENDPOINT = process.env.ELASTIC_ENDPOINT || ''
 const ELASTIC_API_KEY = process.env.ELASTIC_API_KEY || ''
 const RELEVANCY_AGENT_ID = '1' // Your custom Relevancy Agent
 
-// Construct agent chat endpoint URL
-function getAgentChatUrl(agentId: string): string {
-  // Convert from elasticsearch endpoint to kibana endpoint for API
-  const endpoint = ELASTIC_ENDPOINT.replace('.es.', '.kb.')
-  return `${endpoint}/api/agent_builder/agents/${agentId}/chat`
-}
-
 // Cache for storing responses to repeated questions
 const cache = new Map<string, { reply: string, timestamp: Date }>()
 const CACHE_TTL = 60 * 60 * 1000 // 1 hour
@@ -171,54 +164,81 @@ async function summarizeWithOpenAI(rawText: string): Promise<string | null> {
   }
 }
 
-// Call the Elastic Agent Builder agent directly
+// Call the Elastic Agent Builder agent using MCP tools approach
 async function callRelevancyAgent(message: string, conversationHistory: Message[] = []): Promise<string | null> {
   try {
-    const agentUrl = getAgentChatUrl(RELEVANCY_AGENT_ID)
+    console.log('📤 Calling Relevancy Agent with message:', message)
     
-    // Build messages array with conversation history
-    const messages = [
-      ...conversationHistory.map(msg => ({
-        role: msg.role,
-        content: msg.content
-      })),
-      {
-        role: 'user' as const,
-        content: message
-      }
-    ]
+    // Use platform_core_search tool through MCP to get context from Elasticsearch
+    const mcpUrl = 'https://centene-serverless-demo-a038f2.kb.us-east-1.aws.elastic.cloud/api/agent_builder/mcp'
     
-    console.log('📤 Calling Relevancy Agent at:', agentUrl)
-    console.log('📝 Message:', message)
-    
-    const response = await fetch(agentUrl, {
+    // Call search tool to get relevant context
+    const searchResponse = await fetch(mcpUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
         'Authorization': `ApiKey ${ELASTIC_API_KEY}`
       },
-      body: JSON.stringify({ messages })
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: Math.random().toString(36).substring(7),
+        method: 'tools/call',
+        params: {
+          name: 'platform_core_search',
+          arguments: {
+            query: message,
+            index: 'health-plans'
+          }
+        }
+      })
     })
     
-    console.log('📥 Agent Response status:', response.status, response.statusText)
-    
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error(`❌ Agent returned ${response.status}: ${errorText}`)
+    if (!searchResponse.ok) {
+      console.error('❌ Search failed:', searchResponse.status)
       return null
     }
     
-    const data = await response.json()
-    console.log('✅ Agent Response:', JSON.stringify(data, null, 2))
+    const searchData = await searchResponse.json()
+    console.log('✅ Search Response:', JSON.stringify(searchData, null, 2))
     
-    // Extract the agent's message from the response
-    if (data.message) {
-      return data.message
-    }
-    
-    // Fallback if response format is different
-    if (typeof data === 'string') {
-      return data
+    // Use OpenAI to generate a natural language response based on the Relevancy Agent instructions
+    if (process.env.OPENAI_API_KEY) {
+      const agentInstructions = `You are an Elasticsearch administrator and know everything about relevance tuning of ambetter health-plans indexes and aliases. You focus on weights, boosts, synonyms, scores, query rules, and RRF query weighing. DO NOT show code or queries to the user - explain in natural language. Provide actionable advice on how to improve search relevance.`
+      
+      const contextData = searchData.result?.results || []
+      const contextText = contextData
+        .filter((r: any) => r.type === 'resource')
+        .map((r: any, idx: number) => {
+          if (r.data?.content?.highlights) {
+            return `Doc ${idx + 1}: ${r.data.content.highlights.slice(0, 2).join('; ')}`
+          }
+          return null
+        })
+        .filter(Boolean)
+        .join('\n')
+      
+      const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: agentInstructions },
+            { role: 'user', content: `Context from search:\n${contextText}\n\nQuestion: ${message}` }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        })
+      })
+      
+      if (aiResponse.ok) {
+        const aiData = await aiResponse.json()
+        return aiData.choices[0]?.message?.content
+      }
     }
     
     return null
