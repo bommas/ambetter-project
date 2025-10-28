@@ -253,8 +253,21 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
         })
         
         if (responseText.trim()) {
+          // Get the actual result data for better context
+          let actualResults = ''
+          data.result.results.forEach((r: any) => {
+            if (r.type === 'tabular_data' && r.data?.values && r.data.values.length > 0) {
+              const columns = r.data.columns?.map((c: any) => c.name).join(', ') || ''
+              const values = r.data.values[0].join(', ')
+              actualResults += `Columns: ${columns}\nValues: ${values}\n`
+            }
+          })
+          
+          // Create context for OpenAI
+          const fullContext = `${responseText}\n\nActual Results:\n${actualResults}`
+          
           // Summarize using OpenAI to make it natural language
-          const naturalSummary = await summarizeWithOpenAI(responseText.trim())
+          const naturalSummary = await summarizeWithOpenAI(fullContext.trim())
           if (naturalSummary) {
             return naturalSummary
           }
