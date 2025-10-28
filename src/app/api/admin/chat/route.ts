@@ -97,8 +97,8 @@ async function getIndexStats() {
     const countResponse = await client.count({ index: 'health-plans*' })
     const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
     
-    // Get cluster health
-    const healthResponse = await client.cluster.health({ index: 'health-plans*' })
+    // Get cluster health - use empty string for index parameter to get overall health
+    const healthResponse = await client.cluster.health()
     
     return {
       totalDocs: totalDocs || 0,
