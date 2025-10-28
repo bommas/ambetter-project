@@ -128,14 +128,14 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
     // Generate unique request ID
     const requestId = Math.random().toString(36).substring(7)
     
-    // Build arguments based on tool
-    let arguments: any = {}
+    // Build tool arguments based on tool
+    let toolArgs: any = {}
     if (toolName === 'platform_core_search') {
-      arguments = { query, index: params?.index }
+      toolArgs = { query, index: params?.index }
     } else if (toolName === 'platform_core_list_indices') {
-      arguments = { pattern: params?.index || query }
+      toolArgs = { pattern: params?.index || query }
     } else {
-      arguments = { query }
+      toolArgs = { query }
     }
     
     const requestBody = {
@@ -144,7 +144,7 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
       method: 'tools/call',
       params: {
         name: toolName,
-        arguments
+        arguments: toolArgs
       }
     }
     
