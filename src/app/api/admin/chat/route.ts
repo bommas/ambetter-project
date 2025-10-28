@@ -164,34 +164,25 @@ async function summarizeWithOpenAI(rawText: string): Promise<string | null> {
   }
 }
 
-// MCP Agent Builder integration
-async function callMCPAgent(toolName: string, query: string, params?: any) {
+// MCP Agent Builder integration - Call the Relevancy Agent
+async function callMCPAgent(agentId: string, message: string) {
   try {
     // Generate unique request ID
     const requestId = Math.random().toString(36).substring(7)
     
-    // Build tool arguments based on tool
-    let toolArgs: any = {}
-    if (toolName === 'platform_core_search') {
-      toolArgs = { query, index: params?.index }
-    } else if (toolName === 'platform_core_list_indices') {
-      toolArgs = { pattern: params?.index || query }
-    } else {
-      toolArgs = { query }
-    }
-    
     const requestBody = {
       jsonrpc: '2.0',
       id: requestId,
-      method: 'tools/call',
+      method: 'chat',
       params: {
-        name: toolName,
-        arguments: toolArgs
+        agent_id: agentId,
+        message: message
       }
     }
     
-    console.log('📤 MCP Request:', JSON.stringify(requestBody, null, 2))
+    console.log('📤 MCP Agent Request:', JSON.stringify(requestBody, null, 2))
     console.log('🔗 MCP Server URL:', MCP_SERVER_URL)
+    console.log('🤖 Agent ID:', agentId)
     
     // MCP servers require Accept header for JSON and JSON-RPC 2.0 format
     const response = await fetch(MCP_SERVER_URL, {
@@ -215,7 +206,12 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
     const data = await response.json()
     console.log('✅ MCP Response data:', JSON.stringify(data, null, 2))
     
-    // Handle response format - try to extract meaningful text
+    // Handle agent response - it should be a chat message
+    if (data.result && data.result.message) {
+      return data.result.message
+    }
+    
+    // Fallback for other formats
     if (data.result) {
       // Handle results array with different types (query, tabular_data, resource)
       if (Array.isArray(data.result.results)) {
@@ -379,60 +375,17 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
   }
 }
 
-async function getMCPTools() {
-  try {
-    const response = await fetch(`${MCP_SERVER_URL}/tools`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `ApiKey ${ELASTIC_API_KEY}`
-      }
-    })
-
-    if (!response.ok) {
-      return []
-    }
-
-    const data = await response.json()
-    return data.tools || []
-  } catch (error: any) {
-    console.error('MCP Tools fetch error:', error)
-    return []
-  }
-}
-
 // Generate response using Elastic Agent Builder via MCP
 async function generateResponse(userMessage: string, conversationHistory: Message[]): Promise<string> {
-  const context = await analyzeSearchQueries()
   const stats = await getIndexStats()
   
-  // Try to use Elastic Agent Builder MCP first
-  const lowerMessage = userMessage.toLowerCase()
+  // Try to use Elastic Agent Builder MCP first - call the Relevancy Agent
+  const AGENT_ID = '1' // Relevancy Agent
   
-  // Determine which tool to use based on query
-  let toolName = 'platform_core_search' // Default
-  let toolQuery = userMessage
-  let indexParam = 'health-plans'
+  // Call the Relevancy Agent via MCP
+  const mcpResponse = await callMCPAgent(AGENT_ID, userMessage)
   
-  if (lowerMessage.includes('show') || lowerMessage.includes('list') || lowerMessage.includes('find')) {
-    // Use direct search queries
-    toolName = 'platform_core_search'
-    indexParam = 'health-plans'
-  } else if (lowerMessage.includes('index') || lowerMessage.includes('indices')) {
-    toolName = 'platform_core_list_indices'
-    toolQuery = 'health-plans'
-  }
-  
-  // Call MCP Agent Builder with the right tool
-  const mcpResponse = await callMCPAgent(toolName, toolQuery, {
-    index: indexParam,
-    context: JSON.stringify({
-      stats,
-      aggregations: context.aggregations,
-      sampleResults: (context as any).sampleResults
-    })
-  })
-  
-  // If MCP agent returns a response, use it
+  // If agent returns a response, use it
   if (mcpResponse && typeof mcpResponse === 'string') {
     // Check if it's raw JSON and needs formatting
     if (mcpResponse.startsWith('{"results":')) {
