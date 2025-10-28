@@ -183,21 +183,44 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
         }
       }
       
+      // If result is an object with results array (from platform_core_search)
+      if (data.result.results && Array.isArray(data.result.results)) {
+        const summary = data.result.results
+          .map((r: any) => {
+            if (r.data?.content?.highlights) {
+              const cleanHighlights = r.data.content.highlights
+                .slice(0, 3)
+                .map((h: string) => h.replace(/<em>|<\/em>/g, ''))
+                .join(' | ')
+              return cleanHighlights
+            }
+            return null
+          })
+          .filter(Boolean)
+          .slice(0, 5)
+          .join('\n\n---\n\n')
+        return `Found ${data.result.results.length} results for your search:\n\n${summary}`
+      }
+      
       // If result is a JSON string (from platform_core_search)
       if (typeof data.result === 'string') {
-        const parsed = JSON.parse(data.result)
-        if (parsed.results && Array.isArray(parsed.results)) {
-          const summary = parsed.results
-            .map((r: any) => {
-              if (r.data?.content?.highlights) {
-                return r.data.content.highlights.slice(0, 3).join(' | ')
-              }
-              return null
-            })
-            .filter(Boolean)
-            .slice(0, 5)
-            .join('\n\n')
-          return `Found ${parsed.results.length} results:\n${summary}`
+        try {
+          const parsed = JSON.parse(data.result)
+          if (parsed.results && Array.isArray(parsed.results)) {
+            const summary = parsed.results
+              .map((r: any) => {
+                if (r.data?.content?.highlights) {
+                  return r.data.content.highlights.slice(0, 3).join(' | ')
+                }
+                return null
+              })
+              .filter(Boolean)
+              .slice(0, 5)
+              .join('\n\n')
+            return `Found ${parsed.results.length} results:\n${summary}`
+          }
+        } catch (e) {
+          // Not JSON, return as string
         }
         return data.result
       }
