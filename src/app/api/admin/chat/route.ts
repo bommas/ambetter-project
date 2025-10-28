@@ -175,31 +175,49 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
     
     // Handle response format - try to extract meaningful text
     if (data.result) {
+      // Handle results array with different types (query, tabular_data, resource)
+      if (Array.isArray(data.result.results)) {
+        let responseText = ''
+        
+        data.result.results.forEach((r: any, index: number) => {
+          // Handle tabular data from ES|QL
+          if (r.type === 'tabular_data' && r.data?.values) {
+            const columns = r.data.columns?.map((c: any) => c.name).join(', ') || ''
+            const rows = r.data.values.slice(0, 5).map((row: any[]) => row.join(' | '))
+            
+            if (columns) {
+              responseText += `**Query Results:**\nColumns: ${columns}\n`
+            }
+            responseText += rows.join('\n') + '\n\n'
+          }
+          
+          // Handle search results with highlights
+          if (r.data?.content?.highlights) {
+            const cleanHighlights = r.data.content.highlights
+              .slice(0, 3)
+              .map((h: string) => h.replace(/<em>|<\/em>/g, ''))
+              .join(' | ')
+            responseText += `**Result ${index + 1}:** ${cleanHighlights}\n\n`
+          }
+          
+          // Handle query info
+          if (r.type === 'query' && r.data?.esql) {
+            responseText += `**Query Executed:** ${r.data.esql}\n\n`
+          }
+        })
+        
+        if (responseText.trim()) {
+          // Try to make it more natural by adding context
+          return `I ran a query for you. Here's what I found:\n\n${responseText.trim()}\n\nNote: These are the raw query results. Would you like me to summarize this information in a more natural format?`
+        }
+      }
+      
       // If result has content array with text
       if (data.result.content && Array.isArray(data.result.content)) {
         const textContent = data.result.content.find((c: any) => c.type === 'text' || c.text)
         if (textContent?.text) {
           return textContent.text
         }
-      }
-      
-      // If result is an object with results array (from platform_core_search)
-      if (data.result.results && Array.isArray(data.result.results)) {
-        const summary = data.result.results
-          .map((r: any) => {
-            if (r.data?.content?.highlights) {
-              const cleanHighlights = r.data.content.highlights
-                .slice(0, 3)
-                .map((h: string) => h.replace(/<em>|<\/em>/g, ''))
-                .join(' | ')
-              return cleanHighlights
-            }
-            return null
-          })
-          .filter(Boolean)
-          .slice(0, 5)
-          .join('\n\n---\n\n')
-        return `Found ${data.result.results.length} results for your search:\n\n${summary}`
       }
       
       // If result is a JSON string (from platform_core_search)
