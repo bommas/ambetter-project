@@ -100,8 +100,8 @@ async function getIndexStats() {
     const totalDocs = typeof countResponse.count === 'number' ? countResponse.count : countResponse.count.value
     console.log('📈 totalDocs extracted:', totalDocs)
     
-    // Get cluster health - use empty string for index parameter to get overall health
-    const healthResponse = await client.cluster.health()
+    // Get cluster health - don't pass index parameter at all
+    const healthResponse = await client.cluster.health({})
     console.log('💚 healthResponse:', JSON.stringify(healthResponse, null, 2))
     
     const stats = {
