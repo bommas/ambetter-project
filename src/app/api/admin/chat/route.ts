@@ -459,8 +459,113 @@ async function callMCPAgent(agentId: string, message: string) {
   }
 }
 
+// Get top queries from search events
+async function getTopQueries(limit: number = 10) {
+  try {
+    const response = await client.search({
+      index: 'search-events',
+      size: 0,
+      body: {
+        query: { match_all: {} },
+        aggs: {
+          top_queries: {
+            terms: {
+              field: 'search_query.keyword',
+              size: limit,
+              order: { _count: 'desc' }
+            },
+            aggs: {
+              result_counts: {
+                stats: { field: 'result_count' }
+              }
+            }
+          }
+        }
+      }
+    })
+    
+    const buckets = response.aggregations?.top_queries?.buckets || []
+    return buckets.map(bucket => ({
+      query: bucket.key,
+      count: bucket.doc_count,
+      avgResults: bucket.result_counts?.avg || 0,
+      minResults: bucket.result_counts?.min || 0,
+      maxResults: bucket.result_counts?.max || 0
+    }))
+  } catch (error: any) {
+    console.error('Error getting top queries:', error)
+    return []
+  }
+}
+
+// Get queries with no results
+async function getQueriesWithNoResults(limit: number = 10) {
+  try {
+    const response = await client.search({
+      index: 'search-events',
+      size: limit,
+      body: {
+        query: {
+          term: { 'result_count': 0 }
+        },
+        aggs: {
+          no_result_queries: {
+            terms: {
+              field: 'search_query.keyword',
+              size: limit,
+              order: { _count: 'desc' }
+            }
+          }
+        }
+      }
+    })
+    
+    const buckets = response.aggregations?.no_result_queries?.buckets || []
+    return buckets.map(bucket => ({
+      query: bucket.key,
+      count: bucket.doc_count
+    }))
+  } catch (error: any) {
+    console.error('Error getting queries with no results:', error)
+    return []
+  }
+}
+
 // Generate response using the actual Elastic Agent Builder Relevancy Agent
 async function generateResponse(userMessage: string, conversationHistory: Message[]): Promise<string> {
+  const lowerMessage = userMessage.toLowerCase()
+  
+  // Handle analytics-specific questions before calling the agent
+  if (lowerMessage.includes('top query') || lowerMessage.includes('popular quer') || lowerMessage.includes('most common query')) {
+    const topQueries = await getTopQueries(10)
+    if (topQueries.length > 0) {
+      return `**Top Search Queries (last 7 days):**\n\n${topQueries.map((q, idx) => 
+        `${idx + 1}. "${q.query}" - Searched ${q.count} time(s), avg ${Math.round(q.avgResults)} results per search`
+      ).join('\n')}\n\nThese queries are most commonly used. Consider optimizing field boosts for terms appearing frequently in these queries.`
+    } else {
+      return 'No search analytics data available yet. Search events will start being tracked after users perform searches.'
+    }
+  }
+  
+  if (lowerMessage.includes('no result') || lowerMessage.includes('zero result') || lowerMessage.includes('query with no result')) {
+    const noResultQueries = await getQueriesWithNoResults(10)
+    if (noResultQueries.length > 0) {
+      return `**Queries Returning Zero Results:**\n\n${noResultQueries.map((q, idx) => 
+        `${idx + 1}. "${q.query}" - ${q.count} occurrence(s)`
+      ).join('\n')}\n\n**Recommendations:**\n- Add synonyms for common misspellings (e.g., "healthcare" → "health care")\n- Enable more aggressive fuzziness for typo tolerance\n- Broaden field coverage in multi_match queries\n- Consider using query_string with wildcards for partial matches\n- Add curated results for these specific queries`
+    } else {
+      return 'Great news! No queries are returning zero results. Your search configuration is working well.'
+    }
+  }
+  
+  if (lowerMessage.includes('query analytics') || lowerMessage.includes('search analytics')) {
+    const topQueries = await getTopQueries(5)
+    const noResultQueries = await getQueriesWithNoResults(5)
+    const stats = await getIndexStats()
+    
+    return `**Search Analytics Summary:**\n\n**Index Status:**\n- Total Documents: ${stats.totalDocs}\n- Index Health: ${stats.health}\n\n**Top Search Queries:**\n${topQueries.length > 0 ? topQueries.map(q => `- "${q.query}" (${q.count} searches, avg ${Math.round(q.avgResults)} results)`).join('\n') : 'No data yet'}\n\n**Queries with Zero Results:**\n${noResultQueries.length > 0 ? noResultQueries.map(q => `- "${q.query}" (${q.count} times)`).join('\n') : 'None (great!)'}\n\n**Recommendations:**\n- Optimize field boosts for frequently searched terms\n- Add synonyms for zero-result queries\n- Use Elastic curations to pin important documents for top queries`
+  }
+  
   // Try to call the actual Relevancy Agent first
   const agentResponse = await callRelevancyAgent(userMessage, conversationHistory)
   
@@ -479,6 +584,8 @@ Current index status:
 - Status: ${stats.status || 'Unknown'}
 
 Ask me about:
+- Top queries and search analytics
+- Queries with no results
 - Relevance tuning techniques
 - Field boosting strategies
 - Query optimization

@@ -118,7 +118,7 @@ export const HEALTH_PLANS_MAPPING: any = {
 // Search events mapping
 export const SEARCH_EVENTS_MAPPING: any = {
   properties: {
-    search_query: { type: 'text', analyzer: 'standard' },
+    search_query: { type: 'text', analyzer: 'standard', fields: { keyword: { type: 'keyword' } } },
     filters: {
       properties: {
         county: { type: 'keyword' },
