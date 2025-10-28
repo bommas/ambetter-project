@@ -293,9 +293,9 @@ Index status: ${stats.status || 'active'}`
   return `I can help you with search relevancy tuning for your Ambetter health plans application.
 
 Current index status:
-- Documents: ${stats.totalDocs}
-- Health: ${stats.health}
-- Status: ${stats.status}
+- Documents: ${stats.totalDocs || 'Unknown'}
+- Health: ${stats.health || 'Unknown'}
+- Status: ${stats.status || 'Unknown'}
 
 What would you like to know about improving search relevance?`
 }
