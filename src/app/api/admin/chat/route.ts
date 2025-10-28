@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/lib/elasticsearch'
 
+// MCP Server Configuration
+const MCP_SERVER_URL = 'https://centene-serverless-demo-a038f2.kb.us-east-1.aws.elastic.cloud/api/agent_builder/mcp'
+const ELASTIC_ENDPOINT = process.env.ELASTIC_ENDPOINT || ''
+const ELASTIC_API_KEY = process.env.ELASTIC_API_KEY || ''
+
 // Cache for storing responses to repeated questions
 const cache = new Map<string, { reply: string, timestamp: Date }>()
 const CACHE_TTL = 60 * 60 * 1000 // 1 hour
@@ -102,10 +107,82 @@ async function getIndexStats() {
   }
 }
 
-// Generate response using Elasticsearch context
+// MCP Agent Builder integration
+async function callMCPAgent(agentName: string, query: string, context?: any) {
+  try {
+    const response = await fetch(MCP_SERVER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `ApiKey ${ELASTIC_API_KEY}`
+      },
+      body: JSON.stringify({
+        agent: agentName,
+        query: query,
+        context: context || {}
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`MCP Server returned ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data.response || data
+  } catch (error: any) {
+    console.error('MCP Agent call error:', error)
+    return null
+  }
+}
+
+async function getMCPTools() {
+  try {
+    const response = await fetch(`${MCP_SERVER_URL}/tools`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `ApiKey ${ELASTIC_API_KEY}`
+      }
+    })
+
+    if (!response.ok) {
+      return []
+    }
+
+    const data = await response.json()
+    return data.tools || []
+  } catch (error: any) {
+    console.error('MCP Tools fetch error:', error)
+    return []
+  }
+}
+
+// Generate response using Elastic Agent Builder via MCP
 async function generateResponse(userMessage: string, conversationHistory: Message[]): Promise<string> {
   const context = await analyzeSearchQueries()
   const stats = await getIndexStats()
+  
+  // Try to use Elastic Agent Builder MCP first
+  const lowerMessage = userMessage.toLowerCase()
+  
+  // Determine which agent to use based on query
+  let agentName = 'Elastic AI Agent' // Default
+  if (lowerMessage.includes('relevancy') || lowerMessage.includes('relevance') || 
+      lowerMessage.includes('boost') || lowerMessage.includes('tuning') ||
+      lowerMessage.includes('query analysis') || lowerMessage.includes('search optimization')) {
+    agentName = 'Relevancy Agent'
+  }
+  
+  // Call MCP Agent Builder
+  const mcpResponse = await callMCPAgent(agentName, userMessage, {
+    indexStats: stats,
+    aggregations: context.aggregations,
+    sampleResults: (context as any).sampleResults
+  })
+  
+  // If MCP agent returns a response, use it
+  if (mcpResponse && typeof mcpResponse === 'string') {
+    return mcpResponse
+  }
   
   const systemContext = `You are a Search Relevancy Assistant for an Ambetter Health Plans search application.
 
