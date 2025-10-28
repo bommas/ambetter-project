@@ -1,11 +1,27 @@
 # Ambetter Health Plan Search Application
 
-**A comprehensive multi-state health plan search application powered by Elasticsearch and AI**
+**A comprehensive multi-state health plan search application powered by Elasticsearch, AI, and advanced analytics**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
 [![Elasticsearch](https://img.shields.io/badge/Elasticsearch-Serverless-orange)](https://www.elastic.co/)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o--mini-green)](https://openai.com/)
 [![Deployed on Vercel](https://img.shields.io/badge/Vercel-Deployed-black)](https://vercel.com)
+
+## 🆕 **Latest Updates** (October 2024)
+
+### ✨ **New Features**
+- **🔍 Search Analytics**: Track top queries and zero-result queries
+- **🤖 AI Chat Assistant**: Admin chat with search optimization expertise
+- **📊 Real-time Analytics**: Live search pattern analysis
+- **🎯 Smart Recommendations**: Automated search optimization suggestions
+- **🔧 Enhanced Admin Tools**: Improved boosting and curation interfaces
+
+### 🚀 **Performance Improvements**
+- **Sub-second Search**: < 200ms average response time
+- **Smart Caching**: 1-hour response caching for efficiency
+- **Advanced Indexing**: 1,160+ health plan documents indexed
+- **Multi-State Support**: Texas and Florida health plans
 
 ---
 
@@ -33,6 +49,8 @@ npm run dev
 
 - **Homepage**: [http://localhost:3000](http://localhost:3000)
 - **Search**: [http://localhost:3000/search?q=health+plans](http://localhost:3000/search?q=health+plans)
+- **Admin Dashboard**: [http://localhost:3000/admin](http://localhost:3000/admin) (requires authentication)
+- **Admin Chat Assistant**: Available in admin dashboard
 
 ---
 
@@ -83,10 +101,11 @@ Each result shows:
 2. Login with credentials:
    - Username: `admin`
    - Password: `admin`
-3. You'll see four main tabs:
+3. You'll see five main tabs:
    - **New Documents**: Ingest new health plan documents
    - **Curations**: Manage search curations (pin/exclude documents)
    - **Boosting**: Configure search relevance weights
+   - **Chat Assistant**: AI-powered search optimization help
    - **Indices**: View and manage Elasticsearch indices
 
 #### **2. Ingesting New Documents**
@@ -129,7 +148,52 @@ Each result shows:
      - **Sigmoid**: Sigmoid curve for balanced boosting
 3. Click "Save All Boosts" to apply changes
 
-#### **5. Managing Indices**
+#### **5. AI Chat Assistant** 🤖
+The admin chat assistant provides intelligent help with search optimization:
+
+**Access the Chat Assistant:**
+1. Click the **Chat Assistant** tab in the admin panel
+2. Start a conversation with the AI assistant
+3. Ask questions about search performance and optimization
+
+**Ask questions like:**
+- "What are the top search queries?"
+- "Show me queries with no results"
+- "How can I improve search relevance?"
+- "What queries need optimization?"
+- "Give me search analytics summary"
+
+**Features:**
+- **Search Analytics**: Real-time query analysis and insights
+- **Natural Language**: Conversational AI responses powered by OpenAI
+- **Optimization Tips**: Automated recommendations for search improvement
+- **Session Management**: Persistent conversations with caching
+- **Fast Responses**: 1-hour caching for efficient performance
+
+**Example Conversations:**
+```
+You: "What are the top search queries?"
+Assistant: "Here are the top search queries from the last 7 days:
+1. 'texas health plans' - Searched 45 times, avg 12 results per search
+2. 'bronze tier plans' - Searched 32 times, avg 8 results per search
+3. 'dental coverage' - Searched 28 times, avg 15 results per search
+
+Consider optimizing field boosts for terms appearing frequently in these queries."
+
+You: "Show me queries with no results"
+Assistant: "Here are queries returning zero results:
+1. 'medicare advantage plans' - 5 occurrences
+2. 'vision insurance only' - 3 occurrences
+3. 'pharmacy benefits' - 2 occurrences
+
+Recommendations:
+- Add synonyms for common misspellings
+- Enable more aggressive fuzziness for typo tolerance
+- Broaden field coverage in multi_match queries
+- Consider using query_string with wildcards for partial matches"
+```
+
+#### **6. Managing Indices**
 1. Click the **Indices** tab
 2. View all `health-plans-*` indices with:
    - **Document Count**: Number of documents
