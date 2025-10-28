@@ -110,6 +110,7 @@ async function getIndexStats() {
 // MCP Agent Builder integration
 async function callMCPAgent(agentName: string, query: string, context?: any) {
   try {
+    // MCP servers typically use a different format - check Elastic's specific requirements
     const response = await fetch(MCP_SERVER_URL, {
       method: 'POST',
       headers: {
@@ -117,18 +118,24 @@ async function callMCPAgent(agentName: string, query: string, context?: any) {
         'Authorization': `ApiKey ${ELASTIC_API_KEY}`
       },
       body: JSON.stringify({
-        agent: agentName,
-        query: query,
-        context: context || {}
+        method: 'tools/call',
+        params: {
+          name: agentName,
+          arguments: {
+            user_message: query,
+            context: context || {}
+          }
+        }
       })
     })
 
     if (!response.ok) {
-      throw new Error(`MCP Server returned ${response.status}`)
+      console.error(`MCP Server returned ${response.status}: ${await response.text()}`)
+      return null
     }
 
     const data = await response.json()
-    return data.response || data
+    return data.result?.content?.[0]?.text || data.response || data
   } catch (error: any) {
     console.error('MCP Agent call error:', error)
     return null
