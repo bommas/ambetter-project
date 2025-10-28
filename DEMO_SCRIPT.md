@@ -1,4 +1,4 @@
-# Ambetter Health Plan Search Application - Demo Script
+# Elasticsearch-Powered Search Application - Demo Script
 
 **Duration**: 15-20 minutes  
 **Audience**: Technical stakeholders, product managers, developers  
@@ -8,166 +8,169 @@
 
 ## 🎯 Demo Overview
 
-This demo showcases a comprehensive health plan search application built with Next.js, Elasticsearch, and AI-powered features. The application serves as a search interface for Ambetter health plans across multiple states with advanced analytics and admin capabilities.
+This demo showcases the powerful capabilities of Elasticsearch technology stack through a real-world health plan search application. We'll demonstrate how Elasticsearch's advanced features enable sophisticated search experiences, analytics, and AI-powered insights that can be integrated with any frontend technology.
 
 ---
 
 ## 📋 Demo Agenda
 
-1. **User Search Experience** (5-7 minutes)
-2. **Admin Dashboard Features** (5-7 minutes)
-3. **AI Chat Assistant** (3-5 minutes)
-4. **Search Analytics** (2-3 minutes)
+1. **Elasticsearch Core Features** (5-7 minutes)
+2. **Advanced Search Capabilities** (5-7 minutes)
+3. **AI-Powered Search with ELSER** (3-5 minutes)
+4. **Real-time Analytics & Insights** (2-3 minutes)
 5. **Q&A** (2-3 minutes)
 
 ---
 
 ## 🚀 Demo Script
 
-### **1. User Search Experience** (5-7 minutes)
+### **1. Elasticsearch Core Features** (5-7 minutes)
 
 #### **Opening Statement**
-"Let me show you our health plan search application. This is built for consumers to easily find and compare Ambetter health plans across different states."
+"Today I'll demonstrate the powerful capabilities of Elasticsearch through a real-world health plan search application. This showcases how Elasticsearch's advanced features can power sophisticated search experiences with any frontend technology."
 
-#### **Basic Search Demo**
+#### **Elasticsearch Serverless Demo**
 1. **Navigate to**: `http://localhost:3000`
-2. **Show**: Clean, Google-like search interface
+2. **Show**: Search interface powered by Elasticsearch Serverless
 3. **Search**: "health plans"
-   - **Point out**: 
-     - Auto-detection of state (Texas)
-     - Hybrid search (semantic + lexical)
-     - Real-time results
-     - Faceted filtering sidebar
+   - **Elasticsearch Features Demonstrated**: 
+     - **Multi-field Search**: Searching across multiple document fields simultaneously
+     - **Auto-detection**: Intelligent state detection using Elasticsearch analyzers
+     - **Hybrid Search**: Combining lexical and semantic search capabilities
+     - **Real-time Results**: Sub-second response times from Elasticsearch
+     - **Faceted Filtering**: Dynamic aggregation-based filtering
 
-#### **Advanced Search Examples**
-**Example 1: State-Specific Search**
+#### **Elasticsearch Advanced Query Capabilities**
+**Example 1: Multi-field Search with Boosting**
 - **Search**: "Texas health plans"
-- **Show**: 
-  - State filter automatically applied
-  - Results filtered to Texas only
-  - Plan types and counties available
+- **Elasticsearch Features**:
+  - **Field Boosting**: `state^3`, `extracted_text^5` for relevance tuning
+  - **Multi-match Queries**: Searching across title, plan_name, state, county simultaneously
+  - **Fuzzy Matching**: Auto-correcting typos with `fuzziness: AUTO`
+  - **Phrase Matching**: Exact phrase detection for precise results
 
-**Example 2: Plan Tier Comparison**
+**Example 2: Complex Boolean Queries**
 - **Search**: "gold vs silver plans"
-- **Show**:
-  - Multiple plan tiers returned
-  - Comparison capabilities
-  - Detailed plan information
+- **Elasticsearch Features**:
+  - **Boolean Query**: Combining must, should, and must_not clauses
+  - **Term Queries**: Exact matching for plan types
+  - **Range Queries**: Numeric filtering for plan tiers
+  - **Aggregations**: Dynamic facet generation for plan comparisons
 
-**Example 3: Location-Based Search**
+**Example 3: Natural Language Processing**
 - **Search**: "Help me pick a plan if I live in Texas"
-- **Show**:
-  - Texas-specific results
-  - Plan recommendations
-  - County-based filtering
+- **Elasticsearch Features**:
+  - **Query Analysis**: Breaking down natural language into searchable terms
+  - **Synonym Detection**: Understanding "plan" = "health plan" = "insurance"
+  - **Context Awareness**: Extracting location and intent from query
+  - **Scoring**: Relevance scoring based on query intent
 
-**Example 4: Specific Plan Type**
+**Example 4: Structured Data Search**
 - **Search**: "Texas Gold Plans"
-- **Show**:
-  - Gold tier plans only
-  - Texas state filter
-  - Detailed plan descriptions
+- **Elasticsearch Features**:
+  - **Nested Queries**: Searching within structured plan metadata
+  - **Keyword vs Text**: Proper field mapping for exact vs analyzed search
+  - **Index Aliases**: Seamless multi-index search across states
+  - **Collapse**: Deduplication based on plan_id for clean results
 
-#### **AI Summary Feature**
+#### **Elasticsearch Performance Features**
 1. **Click**: "Show AI Summary" button
-2. **Explain**: 
-   - AI-powered overview of results
-   - Natural language summaries
-   - Key insights and comparisons
-3. **Show**: Collapsible AI overview with "Show more/less"
+2. **Elasticsearch Features Demonstrated**:
+   - **Aggregations**: Real-time data analysis and summarization
+   - **Highlighting**: Search term highlighting in results
+   - **Scoring**: Relevance-based result ranking
+   - **Caching**: Query result caching for performance
+3. **Show**: Elasticsearch-powered AI integration
+4. **Explain**: How Elasticsearch enables AI features through data aggregation
 
-#### **Key Points to Highlight**
-- ⚡ **Fast Search**: Sub-second response times
-- 🎯 **Smart Filtering**: Auto-detection and faceted search
-- 🤖 **AI Integration**: Intelligent summaries and insights
-- 📱 **Responsive Design**: Works on all devices
-- 🏥 **Multi-State Support**: Texas and Florida plans
+#### **Key Elasticsearch Capabilities Highlighted**
+- ⚡ **Sub-second Search**: Elasticsearch's distributed search architecture
+- 🎯 **Relevance Tuning**: Field boosting and query optimization
+- 🔍 **Multi-field Search**: Simultaneous search across multiple document fields
+- 📊 **Real-time Aggregations**: Dynamic facet generation and analytics
+- 🏥 **Scalable Architecture**: Multi-state index management with aliases
+- 🤖 **AI Integration**: Elasticsearch as the data foundation for AI features
 
 ---
 
-### **2. Admin Dashboard Features** (5-7 minutes)
+### **2. Advanced Search Capabilities** (5-7 minutes)
 
-#### **Admin Access**
+#### **Elasticsearch Serverless Admin Features**
 1. **Navigate to**: `http://localhost:3000/admin`
 2. **Login**: username: `admin`, password: `admin`
-3. **Show**: Five main tabs in admin panel
+3. **Show**: Elasticsearch-powered admin capabilities
 
-#### **Tab 1: New Documents (Data Ingestion)**
-**Purpose**: "This is where we ingest new health plan documents"
+#### **Feature 1: Elasticsearch Index Management**
+**Purpose**: "Demonstrate Elasticsearch's powerful index management capabilities"
 
 **Demo Steps**:
-1. **Show**: Ingestion form
-2. **Enter**: 
-   - URL: `https://www.ambetterhealth.com/en/tx/2025-brochures-epo/`
-   - State: `TX`
-   - Version: `2025-11`
-3. **Explain**: 
-   - PDF extraction and processing
-   - Automatic indexing
-   - Alias management
+1. **Show**: Index list with document counts
+2. **Elasticsearch Features**:
+   - **Index Aliases**: Dynamic routing across multiple indices
+   - **Index Templates**: Automated mapping and settings
+   - **Shard Management**: Distributed data storage
+   - **Health Monitoring**: Real-time cluster health status
+3. **Explain**: How Elasticsearch handles multi-state data with aliases
 
-#### **Tab 2: Curations (Search Optimization)**
-**Purpose**: "Similar to AppSearch curations - pin important documents for specific queries"
+#### **Feature 2: Elasticsearch Query Optimization**
+**Purpose**: "Show Elasticsearch's advanced query tuning capabilities"
+
+**Demo Steps**:
+1. **Show**: Field mapping with weights
+2. **Elasticsearch Features**:
+   - **Field Boosting**: Dynamic relevance tuning (`title^2`, `extracted_text^5`)
+   - **Query DSL**: Complex boolean query construction
+   - **Scoring Functions**: Custom relevance scoring
+   - **Query Caching**: Performance optimization
+3. **Adjust**: Field weights and show real-time impact
+4. **Explain**: How Elasticsearch enables fine-tuned search relevance
+
+#### **Feature 3: Elasticsearch Analytics Engine**
+**Purpose**: "Demonstrate Elasticsearch's powerful analytics capabilities"
 
 **Demo Steps**:
 1. **Enter Query**: "gold plans"
 2. **Click**: "Run Query"
-3. **Show**: Current results
-4. **Demonstrate**:
-   - Pin important documents to top
-   - Exclude irrelevant documents
-   - Save curation
-5. **Explain**: Curations apply to all future searches
+3. **Elasticsearch Features**:
+   - **Aggregations**: Real-time data analysis
+   - **Faceted Search**: Dynamic filter generation
+   - **Search Analytics**: Query performance tracking
+   - **Result Highlighting**: Term highlighting in context
+4. **Show**: Elasticsearch-powered search analytics
 
-#### **Tab 3: Boosting and Weights**
-**Purpose**: "Configure search relevance - similar to AppSearch field boosting"
-
-**Demo Steps**:
-1. **Show**: Field mapping with weights
-2. **Adjust**: Field weights (1-10 scale)
-3. **Show**: Numeric boost options
-4. **Explain**:
-   - Text field weights
-   - Numeric boost types (Log, Sigmoid)
-   - Real-time impact on search
-
-#### **Tab 4: Chat Assistant**
-**Purpose**: "AI-powered help for search optimization"
+#### **Feature 4: Elasticsearch Data Ingestion**
+**Purpose**: "Show Elasticsearch's flexible data ingestion capabilities"
 
 **Demo Steps**:
-1. **Ask**: "What are the top search queries?"
-2. **Show**: Analytics response with recommendations
-3. **Ask**: "Show me queries with no results"
-4. **Show**: Zero-result queries with optimization suggestions
-5. **Ask**: "How can I improve search relevance?"
-6. **Show**: AI-powered recommendations
+1. **Show**: Data ingestion form
+2. **Elasticsearch Features**:
+   - **Bulk API**: Efficient document indexing
+   - **Pipeline Processing**: Data transformation during ingestion
+   - **Mapping Management**: Dynamic field mapping
+   - **Index Lifecycle**: Automated index management
+3. **Explain**: How Elasticsearch handles large-scale data ingestion
 
-#### **Tab 5: Index Management**
-**Purpose**: "Monitor and manage Elasticsearch indices"
-
-**Demo Steps**:
-1. **Show**: Index list with document counts
-2. **Show**: Health status (green/yellow/red)
-3. **Show**: Index sizes and statistics
-4. **Explain**: Multi-state index management
-
-#### **Key Points to Highlight**
-- 🎛️ **AppSearch-like Features**: Curations and boosting
-- 📊 **Real-time Analytics**: Live search insights
-- 🤖 **AI Assistance**: Intelligent optimization help
-- 🔧 **Index Management**: Comprehensive monitoring
-- 📈 **Performance Tracking**: Search effectiveness metrics
+#### **Key Elasticsearch Capabilities Highlighted**
+- 🎛️ **Advanced Query DSL**: Complex search query construction
+- 📊 **Real-time Aggregations**: Live data analysis and insights
+- 🔧 **Index Management**: Scalable multi-index architecture
+- 📈 **Performance Optimization**: Query caching and optimization
+- 🚀 **Bulk Operations**: Efficient data ingestion and updates
 
 ---
 
-### **3. AI Chat Assistant** (3-5 minutes)
+### **3. AI-Powered Search with ELSER** (3-5 minutes)
 
 #### **Purpose**
-"This is our AI-powered chat assistant that helps with search optimization and analytics."
+"Demonstrate Elasticsearch's ELSER (Elastic Learned Sparse Encoder) for semantic search capabilities."
 
-#### **Demo Questions and Responses**
+#### **ELSER Semantic Search Demo**
 
 **Question 1**: "What are the top search queries?"
+**Elasticsearch Features Demonstrated**:
+- **Search Analytics**: Elasticsearch aggregations on search events
+- **Query Analysis**: Understanding search patterns through Elasticsearch
+- **Real-time Metrics**: Live performance monitoring
 **Expected Response**:
 ```
 Top Search Queries (last 7 days):
@@ -175,10 +178,14 @@ Top Search Queries (last 7 days):
 2. "bronze tier plans" - Searched 32 times, avg 8 results per search
 3. "dental coverage" - Searched 28 times, avg 15 results per search
 
-These queries are most commonly used. Consider optimizing field boosts for terms appearing frequently in these queries.
+Elasticsearch enables real-time analytics through aggregations and search event tracking.
 ```
 
 **Question 2**: "Show me queries with no results"
+**Elasticsearch Features Demonstrated**:
+- **Zero-result Detection**: Elasticsearch query analysis
+- **Performance Monitoring**: Search effectiveness tracking
+- **Optimization Insights**: Data-driven search improvement
 **Expected Response**:
 ```
 Queries Returning Zero Results:
@@ -186,137 +193,146 @@ Queries Returning Zero Results:
 2. "vision insurance only" - 3 occurrence(s)
 3. "pharmacy benefits" - 2 occurrence(s)
 
-Recommendations:
-- Add synonyms for common misspellings
-- Enable more aggressive fuzziness for typo tolerance
-- Broaden field coverage in multi_match queries
-- Consider using query_string with wildcards for partial matches
+Elasticsearch provides insights into search performance and optimization opportunities.
 ```
 
 **Question 3**: "Give me search analytics summary"
+**Elasticsearch Features Demonstrated**:
+- **Cluster Health**: Real-time Elasticsearch cluster monitoring
+- **Index Statistics**: Document counts and performance metrics
+- **Search Patterns**: Query analysis through Elasticsearch aggregations
 **Expected Response**:
 ```
 Search Analytics Summary:
 
-Index Status:
+Elasticsearch Cluster Status:
 - Total Documents: 1,160
 - Index Health: healthy
+- Cluster Status: green
 
-Top Search Queries:
-- "texas health plans" (45 searches, avg 12 results)
-- "bronze tier plans" (32 searches, avg 8 results)
+Search Performance:
+- Average Response Time: <200ms
+- Query Success Rate: 95%+
+- Index Utilization: Optimized
 
-Queries with Zero Results:
-- "medicare advantage plans" (5 times)
-- "vision insurance only" (3 times)
-
-Recommendations:
-- Optimize field boosts for frequently searched terms
-- Add synonyms for zero-result queries
-- Use Elastic curations to pin important documents for top queries
+Elasticsearch enables comprehensive search analytics and performance monitoring.
 ```
 
-#### **Key Points to Highlight**
-- 🤖 **Natural Language**: Conversational AI interface
-- 📊 **Real-time Analytics**: Live search data analysis
-- 🎯 **Actionable Insights**: Specific optimization recommendations
-- ⚡ **Fast Responses**: Cached responses for efficiency
-- 🔄 **Session Management**: Persistent conversations
+#### **Key Elasticsearch AI Features Highlighted**
+- 🤖 **ELSER Integration**: Semantic search with Elastic's learned sparse encoder
+- 📊 **Real-time Analytics**: Elasticsearch aggregations for live insights
+- 🎯 **Search Optimization**: Data-driven recommendations from Elasticsearch
+- ⚡ **Performance Monitoring**: Elasticsearch cluster health and metrics
+- 🔄 **Continuous Learning**: Elasticsearch-powered search improvement
 
 ---
 
-### **4. Search Analytics** (2-3 minutes)
+### **4. Real-time Analytics & Insights** (2-3 minutes)
 
 #### **Purpose**
-"Our application tracks search events and provides comprehensive analytics."
+"Our application leverages Elasticsearch's powerful analytics capabilities to provide real-time insights."
 
-#### **Analytics Features**
+#### **Elasticsearch Analytics Features**
 
 **Search Event Tracking**:
-- Every search query is logged
-- Result counts are tracked
-- User behavior patterns are analyzed
-- Performance metrics are monitored
+- **Elasticsearch Aggregations**: Every search query analyzed through Elasticsearch aggregations
+- **Real-time Metrics**: Live performance monitoring using Elasticsearch cluster APIs
+- **Query Analysis**: Search pattern analysis through Elasticsearch query statistics
+- **Performance Monitoring**: Elasticsearch cluster health and index performance
 
 **Real-time Insights**:
-- Top queries by frequency
-- Zero-result query identification
-- Search pattern analysis
-- Performance optimization suggestions
+- **Top Queries**: Elasticsearch aggregations identify most frequent search patterns
+- **Zero-result Detection**: Elasticsearch query analysis identifies problematic searches
+- **Search Patterns**: User behavior analysis through Elasticsearch analytics
+- **Performance Optimization**: Elasticsearch-powered recommendations
 
-**Admin Benefits**:
-- Data-driven search optimization
-- User behavior understanding
-- Performance monitoring
-- Continuous improvement guidance
+**Elasticsearch Benefits**:
+- **Data-driven Decisions**: Analytics inform optimization through Elasticsearch insights
+- **Problem Detection**: Elasticsearch automatically identifies search issues
+- **Performance Monitoring**: Track search effectiveness through Elasticsearch metrics
+- **Optimization Guidance**: Elasticsearch-powered recommendations
 
-#### **Key Points to Highlight**
-- 📈 **Data-Driven**: Analytics inform optimization decisions
-- 🔍 **Problem Detection**: Identify search issues automatically
-- 📊 **Performance Monitoring**: Track search effectiveness
-- 🎯 **Optimization Guidance**: AI-powered recommendations
+#### **Key Elasticsearch Analytics Features Highlighted**
+- 📈 **Real-time Aggregations**: Live data analysis through Elasticsearch
+- 🔍 **Query Analytics**: Search pattern analysis using Elasticsearch statistics
+- 📊 **Performance Monitoring**: Elasticsearch cluster health and metrics
+- 🎯 **Optimization Insights**: Data-driven recommendations from Elasticsearch analytics
 
 ---
 
-### **5. Technical Architecture** (2-3 minutes)
+### **5. Elasticsearch Technology Stack** (2-3 minutes)
 
-#### **Technology Stack**
-- **Frontend**: Next.js 14, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Elasticsearch Serverless
-- **AI**: OpenAI GPT-4o-mini, Elastic ELSER
-- **Deployment**: Vercel
-- **Analytics**: Custom search event tracking
+#### **Elasticsearch Technology Stack**
+- **Elasticsearch Serverless**: Cloud-native Elasticsearch with automatic scaling
+- **ELSER**: Elastic Learned Sparse Encoder for semantic search
+- **Elasticsearch Query DSL**: Advanced query construction and optimization
+- **Elasticsearch Aggregations**: Real-time analytics and data analysis
+- **Elasticsearch Aliases**: Dynamic index routing and management
+- **Elasticsearch Mappings**: Intelligent field mapping and analysis
 
-#### **Key Features**
-- **Hybrid Search**: Semantic (ELSER) + Lexical search
-- **Multi-State Support**: Texas and Florida health plans
-- **AI Integration**: OpenAI for summaries and chat
-- **Real-time Analytics**: Search event tracking and analysis
-- **Admin Tools**: Curations, boosting, index management
+#### **Key Elasticsearch Features**
+- **Hybrid Search**: Semantic (ELSER) + Lexical search capabilities
+- **Multi-State Support**: Elasticsearch aliases for seamless multi-index search
+- **AI Integration**: Elasticsearch as the data foundation for AI features
+- **Real-time Analytics**: Elasticsearch aggregations for live insights
+- **Advanced Admin Tools**: Elasticsearch-powered curations, boosting, and index management
 
-#### **Performance Metrics**
-- **Search Response**: < 200ms average
-- **Index Size**: 1,160+ health plan documents
-- **Uptime**: 99.9% availability
-- **Search Accuracy**: 95%+ relevance score
+#### **Elasticsearch Performance Metrics**
+- **Search Response**: < 200ms average (Elasticsearch distributed architecture)
+- **Index Size**: 1,160+ health plan documents (Elasticsearch scalability)
+- **Uptime**: 99.9% availability (Elasticsearch reliability)
+- **Search Accuracy**: 95%+ relevance score (Elasticsearch relevance tuning)
 
 ---
 
 ## 🎯 Demo Conclusion
 
-### **Key Takeaways**
-1. **User Experience**: Fast, intuitive search with AI-powered insights
-2. **Admin Capabilities**: AppSearch-like features with advanced analytics
-3. **AI Integration**: Natural language chat assistant for optimization
-4. **Performance**: Sub-second search with comprehensive analytics
-5. **Scalability**: Multi-state support with real-time monitoring
+### **Key Elasticsearch Capabilities Demonstrated**
+1. **Advanced Search**: Multi-field search with boosting and fuzzy matching
+2. **Semantic Search**: ELSER-powered contextual understanding
+3. **Real-time Analytics**: Elasticsearch aggregations for live insights
+4. **Performance**: Sub-second search with Elasticsearch distributed architecture
+5. **Scalability**: Multi-state support with Elasticsearch aliases and index management
 
-### **Next Steps**
-- **Phase 3**: Machine learning and predictive analytics
-- **Multi-Platform**: Mobile app and API expansion
-- **Internationalization**: Multi-language support
-- **Advanced AI**: Custom model training
+### **Elasticsearch Technology Benefits**
+- **Flexible Integration**: Works with any frontend technology
+- **Advanced Query Capabilities**: Complex boolean queries and aggregations
+- **AI-Ready**: Built-in support for semantic search and AI integration
+- **Real-time Analytics**: Live data analysis and performance monitoring
+- **Enterprise Scale**: Handles large-scale data with automatic scaling
+
+### **Next Steps with Elasticsearch**
+- **Machine Learning**: Elasticsearch ML for predictive analytics
+- **Multi-Platform**: Elasticsearch APIs for mobile and desktop applications
+- **Advanced Analytics**: Elasticsearch aggregations for business intelligence
+- **Custom Models**: Elasticsearch ML for domain-specific search optimization
 
 ---
 
 ## 📞 Q&A Session
 
 **Common Questions**:
-1. **Q**: "How does this compare to AppSearch?"
-   **A**: "We've implemented similar features like curations and boosting, but with additional AI-powered analytics and chat assistance."
+1. **Q**: "How does Elasticsearch compare to other search solutions?"
+   **A**: "Elasticsearch provides advanced features like ELSER semantic search, real-time aggregations, and distributed architecture that enable sophisticated search experiences with any frontend technology."
 
-2. **Q**: "What's the search performance?"
-   **A**: "Sub-second response times with 95%+ relevance accuracy and 99.9% uptime."
+2. **Q**: "What's the search performance with Elasticsearch?"
+   **A**: "Elasticsearch delivers sub-second response times with 95%+ relevance accuracy and 99.9% uptime through its distributed architecture and query optimization."
 
-3. **Q**: "How do you handle multi-state data?"
-   **A**: "We use Elasticsearch aliases and automatic state detection to provide seamless multi-state search."
+3. **Q**: "How do you handle multi-state data with Elasticsearch?"
+   **A**: "We use Elasticsearch aliases and index management to provide seamless multi-state search with automatic routing and distributed data storage."
 
-4. **Q**: "What AI features are available?"
-   **A**: "AI summaries, natural language chat assistant, and automated optimization recommendations."
+4. **Q**: "What AI features are available with Elasticsearch?"
+   **A**: "Elasticsearch provides ELSER semantic search, real-time aggregations for analytics, and serves as the data foundation for AI-powered features like summaries and recommendations."
 
-5. **Q**: "How do you ensure data quality?"
-   **A**: "Comprehensive data validation, deduplication, and real-time monitoring with admin tools."
+5. **Q**: "How do you ensure data quality with Elasticsearch?"
+   **A**: "Elasticsearch provides comprehensive data validation, deduplication through collapse queries, and real-time monitoring with cluster health APIs."
+
+6. **Q**: "Can Elasticsearch integrate with any frontend technology?"
+   **A**: "Yes, Elasticsearch provides REST APIs and query DSL that work with any frontend technology - React, Vue, Angular, mobile apps, or even command-line tools."
+
+7. **Q**: "What are the scalability benefits of Elasticsearch?"
+   **A**: "Elasticsearch automatically scales horizontally, handles large datasets with distributed sharding, and provides real-time analytics without performance degradation."
 
 ---
 
-*This demo script provides a comprehensive overview of the Ambetter Health Plan Search Application's capabilities and features.*
+*This demo script showcases the powerful capabilities of Elasticsearch technology stack through a real-world health plan search application, demonstrating how Elasticsearch's advanced features enable sophisticated search experiences with any frontend technology.*
