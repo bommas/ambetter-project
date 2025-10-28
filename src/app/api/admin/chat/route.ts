@@ -122,6 +122,48 @@ async function getIndexStats() {
   }
 }
 
+// Summarize with OpenAI
+async function summarizeWithOpenAI(rawText: string): Promise<string | null> {
+  try {
+    if (!process.env.OPENAI_API_KEY) {
+      return null
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant that explains Elasticsearch query results in natural, conversational language. Summarize the technical results into easy-to-understand insights.'
+          },
+          {
+            role: 'user',
+            content: `Explain these query results in natural language:\n\n${rawText}`
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 200
+      })
+    })
+
+    if (!response.ok) {
+      return null
+    }
+
+    const data = await response.json()
+    return data.choices[0]?.message?.content || null
+  } catch (error) {
+    console.error('OpenAI summarization error:', error)
+    return null
+  }
+}
+
 // MCP Agent Builder integration
 async function callMCPAgent(toolName: string, query: string, params?: any) {
   try {
@@ -211,7 +253,13 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
         })
         
         if (responseText.trim()) {
-          // Make it more natural with proper formatting
+          // Summarize using OpenAI to make it natural language
+          const naturalSummary = await summarizeWithOpenAI(responseText.trim())
+          if (naturalSummary) {
+            return naturalSummary
+          }
+          
+          // Fallback to formatted output
           const lines = responseText.trim().split('\n')
           const summary = lines.filter(line => line.trim()).slice(0, 10).join('\n')
           return `Query executed successfully.\n\n${summary}`
