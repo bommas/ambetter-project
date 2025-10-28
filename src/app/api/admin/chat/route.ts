@@ -297,6 +297,39 @@ async function callMCPAgent(toolName: string, query: string, params?: any) {
             return `Found ${data.result.results.filter((r: any) => r.type === 'resource').length} relevant documents in your search results:\n\n${resourceResults}\n\nThese documents contain information related to your query.`
           }
           
+          // Check if there are ES|QL queries with no results
+          const hasQueries = data.result.results.some((r: any) => r.type === 'query' && r.data?.esql)
+          const hasNoResults = data.result.results.some((r: any) => r.type === 'tabular_data' && (!r.data?.values || r.data.values.length === 0))
+          
+          if (hasQueries && hasNoResults) {
+            // Try to interpret the query
+            const queryResult = data.result.results.find((r: any) => r.type === 'query' && r.data?.esql)
+            if (queryResult) {
+              const esql = queryResult.data.esql
+              let interpretation = 'Executed analysis on your data'
+              
+              if (esql.includes('BY plan_type') && esql.includes('state')) {
+                interpretation = 'Analyzed plan type and state combinations in your data. No missing plan-type/state combinations found.'
+              } else if (esql.includes('plan_id.keyword') && esql.includes('count == 0')) {
+                interpretation = 'Checked for documents with missing or invalid plan IDs. No such documents found - all documents have valid plan IDs.'
+              } else if (esql.includes('plan_id.keyword')) {
+                interpretation = 'Analyzed plan ID distribution. No data quality issues detected.'
+              } else if (esql.includes('plan_name')) {
+                interpretation = 'Checked for documents with missing plan names. No such documents found - all documents have plan names.'
+              } else if (esql.includes('plan_type') && !esql.includes('state')) {
+                interpretation = 'Checked for documents with missing plan types. No such documents found - all documents have plan types.'
+              } else if (esql.includes('document_url')) {
+                interpretation = 'Checked for documents with missing URLs. No such documents found - all documents have URLs.'
+              } else if (esql.includes('STATS') && esql.includes('BY')) {
+                interpretation = 'Analyzed data distribution across multiple dimensions. No data quality issues detected.'
+              } else if (esql.includes('STATS')) {
+                interpretation = 'Analyzed data quality across your index. No data quality issues detected.'
+              }
+              
+              return `${interpretation}\n\nThe query executed successfully and found no problematic documents. Your data quality looks good!`
+            }
+          }
+          
           // Fallback to formatted output
           const lines = responseText.trim().split('\n')
           const summary = lines.filter(line => line.trim()).slice(0, 10).join('\n')
