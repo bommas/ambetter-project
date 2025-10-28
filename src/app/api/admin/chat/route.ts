@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import client from '@/lib/elasticsearch'
 
-// MCP Server Configuration
-const MCP_SERVER_URL = 'https://centene-serverless-demo-a038f2.kb.us-east-1.aws.elastic.cloud/api/agent_builder/mcp'
+// Elastic Agent Builder Configuration
 const ELASTIC_ENDPOINT = process.env.ELASTIC_ENDPOINT || ''
 const ELASTIC_API_KEY = process.env.ELASTIC_API_KEY || ''
+const RELEVANCY_AGENT_ID = '1' // Your custom Relevancy Agent
+
+// Construct agent chat endpoint URL
+function getAgentChatUrl(agentId: string): string {
+  // Convert from elasticsearch endpoint to kibana endpoint for API
+  const endpoint = ELASTIC_ENDPOINT.replace('.es.', '.kb.')
+  return `${endpoint}/api/agent_builder/agents/${agentId}/chat`
+}
 
 // Cache for storing responses to repeated questions
 const cache = new Map<string, { reply: string, timestamp: Date }>()
@@ -164,7 +171,64 @@ async function summarizeWithOpenAI(rawText: string): Promise<string | null> {
   }
 }
 
-// MCP Agent Builder integration - Call the Relevancy Agent
+// Call the Elastic Agent Builder agent directly
+async function callRelevancyAgent(message: string, conversationHistory: Message[] = []): Promise<string | null> {
+  try {
+    const agentUrl = getAgentChatUrl(RELEVANCY_AGENT_ID)
+    
+    // Build messages array with conversation history
+    const messages = [
+      ...conversationHistory.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      })),
+      {
+        role: 'user' as const,
+        content: message
+      }
+    ]
+    
+    console.log('📤 Calling Relevancy Agent at:', agentUrl)
+    console.log('📝 Message:', message)
+    
+    const response = await fetch(agentUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `ApiKey ${ELASTIC_API_KEY}`
+      },
+      body: JSON.stringify({ messages })
+    })
+    
+    console.log('📥 Agent Response status:', response.status, response.statusText)
+    
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error(`❌ Agent returned ${response.status}: ${errorText}`)
+      return null
+    }
+    
+    const data = await response.json()
+    console.log('✅ Agent Response:', JSON.stringify(data, null, 2))
+    
+    // Extract the agent's message from the response
+    if (data.message) {
+      return data.message
+    }
+    
+    // Fallback if response format is different
+    if (typeof data === 'string') {
+      return data
+    }
+    
+    return null
+  } catch (error: any) {
+    console.error('❌ Agent call error:', error)
+    return null
+  }
+}
+
+// Legacy MCP function - kept for reference
 async function callMCPAgent(agentId: string, message: string) {
   try {
     // Generate unique request ID
@@ -375,62 +439,18 @@ async function callMCPAgent(agentId: string, message: string) {
   }
 }
 
-// Generate response using OpenAI to simulate the Relevancy Agent behavior
+// Generate response using the actual Elastic Agent Builder Relevancy Agent
 async function generateResponse(userMessage: string, conversationHistory: Message[]): Promise<string> {
-  const stats = await getIndexStats()
+  // Try to call the actual Relevancy Agent first
+  const agentResponse = await callRelevancyAgent(userMessage, conversationHistory)
   
-  // Analyze the user's question to understand intent
-  const lowerMessage = userMessage.toLowerCase()
-  
-  // Build system prompt that mimics the Relevancy Agent instructions
-  const systemPrompt = `You are an Elasticsearch administrator and know everything about relevance tuning of ambetter health-plans indexes and aliases. 
-
-**IMPORTANT RULES:**
-- Focus on relevance tuning topics (weights, boosts, synonyms, scores, query rules, RRF)
-- DO NOT show code or queries to the user - explain in natural language
-- Provide actionable advice on how to improve search relevance
-- Your answers should be conversational and helpful
-- If asked about data quality, provide insights without showing queries
-
-Current index statistics:
-- Total Documents: ${stats.totalDocs}
-- Index Health: ${stats.health}
-- Status: ${stats.status}`
-  
-  // Use OpenAI to generate a response with the Relevancy Agent persona
-  if (process.env.OPENAI_API_KEY) {
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-          ],
-          temperature: 0.7,
-          max_tokens: 500
-        })
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        const generatedReply = data.choices[0]?.message?.content
-        if (generatedReply) {
-          return generatedReply
-        }
-      }
-    } catch (error) {
-      console.error('OpenAI error:', error)
-      // Fall through to default response
-    }
+  if (agentResponse) {
+    return agentResponse
   }
   
-  // Default response if OpenAI fails
+  // Fallback to default response if agent call fails
+  const stats = await getIndexStats()
+  
   return `I can help you with search relevancy tuning for your Ambetter health plans application.
 
 Current index status:
