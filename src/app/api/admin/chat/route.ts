@@ -4,6 +4,7 @@ import client from '@/lib/elasticsearch'
 // Elastic Agent Builder Configuration
 const ELASTIC_ENDPOINT = process.env.ELASTIC_ENDPOINT || ''
 const ELASTIC_API_KEY = process.env.ELASTIC_API_KEY || ''
+const MCP_SERVER_URL = process.env.MCP_SERVER_URL || ''
 const RELEVANCY_AGENT_ID = '1' // Your custom Relevancy Agent
 
 // Cache for storing responses to repeated questions
@@ -484,8 +485,9 @@ async function getTopQueries(limit: number = 10) {
       }
     })
     
-    const buckets = response.aggregations?.top_queries?.buckets || []
-    return buckets.map(bucket => ({
+    const topQueries = response.aggregations?.top_queries as any
+    const buckets = topQueries?.buckets || []
+    return buckets.map((bucket: any) => ({
       query: bucket.key,
       count: bucket.doc_count,
       avgResults: bucket.result_counts?.avg || 0,
@@ -520,8 +522,9 @@ async function getQueriesWithNoResults(limit: number = 10) {
       }
     })
     
-    const buckets = response.aggregations?.no_result_queries?.buckets || []
-    return buckets.map(bucket => ({
+    const noResultQueries = response.aggregations?.no_result_queries as any
+    const buckets = noResultQueries?.buckets || []
+    return buckets.map((bucket: any) => ({
       query: bucket.key,
       count: bucket.doc_count
     }))
@@ -539,7 +542,7 @@ async function generateResponse(userMessage: string, conversationHistory: Messag
   if (lowerMessage.includes('top query') || lowerMessage.includes('popular quer') || lowerMessage.includes('most common query')) {
     const topQueries = await getTopQueries(10)
     if (topQueries.length > 0) {
-      return `**Top Search Queries (last 7 days):**\n\n${topQueries.map((q, idx) => 
+      return `**Top Search Queries (last 7 days):**\n\n${topQueries.map((q: any, idx: number) => 
         `${idx + 1}. "${q.query}" - Searched ${q.count} time(s), avg ${Math.round(q.avgResults)} results per search`
       ).join('\n')}\n\nThese queries are most commonly used. Consider optimizing field boosts for terms appearing frequently in these queries.`
     } else {
@@ -550,7 +553,7 @@ async function generateResponse(userMessage: string, conversationHistory: Messag
   if (lowerMessage.includes('no result') || lowerMessage.includes('zero result') || lowerMessage.includes('query with no result')) {
     const noResultQueries = await getQueriesWithNoResults(10)
     if (noResultQueries.length > 0) {
-      return `**Queries Returning Zero Results:**\n\n${noResultQueries.map((q, idx) => 
+      return `**Queries Returning Zero Results:**\n\n${noResultQueries.map((q: any, idx: number) => 
         `${idx + 1}. "${q.query}" - ${q.count} occurrence(s)`
       ).join('\n')}\n\n**Recommendations:**\n- Add synonyms for common misspellings (e.g., "healthcare" → "health care")\n- Enable more aggressive fuzziness for typo tolerance\n- Broaden field coverage in multi_match queries\n- Consider using query_string with wildcards for partial matches\n- Add curated results for these specific queries`
     } else {
@@ -563,7 +566,7 @@ async function generateResponse(userMessage: string, conversationHistory: Messag
     const noResultQueries = await getQueriesWithNoResults(5)
     const stats = await getIndexStats()
     
-    return `**Search Analytics Summary:**\n\n**Index Status:**\n- Total Documents: ${stats.totalDocs}\n- Index Health: ${stats.health}\n\n**Top Search Queries:**\n${topQueries.length > 0 ? topQueries.map(q => `- "${q.query}" (${q.count} searches, avg ${Math.round(q.avgResults)} results)`).join('\n') : 'No data yet'}\n\n**Queries with Zero Results:**\n${noResultQueries.length > 0 ? noResultQueries.map(q => `- "${q.query}" (${q.count} times)`).join('\n') : 'None (great!)'}\n\n**Recommendations:**\n- Optimize field boosts for frequently searched terms\n- Add synonyms for zero-result queries\n- Use Elastic curations to pin important documents for top queries`
+    return `**Search Analytics Summary:**\n\n**Index Status:**\n- Total Documents: ${stats.totalDocs}\n- Index Health: ${stats.health}\n\n**Top Search Queries:**\n${topQueries.length > 0 ? topQueries.map((q: any) => `- "${q.query}" (${q.count} searches, avg ${Math.round(q.avgResults)} results)`).join('\n') : 'No data yet'}\n\n**Queries with Zero Results:**\n${noResultQueries.length > 0 ? noResultQueries.map((q: any) => `- "${q.query}" (${q.count} times)`).join('\n') : 'None (great!)'}\n\n**Recommendations:**\n- Optimize field boosts for frequently searched terms\n- Add synonyms for zero-result queries\n- Use Elastic curations to pin important documents for top queries`
   }
   
   // Try to call the actual Relevancy Agent first
